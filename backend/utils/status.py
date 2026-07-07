@@ -11,3 +11,5 @@ class OrderStatus(str, Enum):
     MODIFIED = "modified"
     REJECTED = "rejected"
     NEED_HUMAN = "need_human"
+    SIMULATING = "simulating"
+    COMPLETED = "completed"

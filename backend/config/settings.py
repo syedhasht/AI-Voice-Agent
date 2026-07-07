@@ -26,7 +26,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./orders.db"
 
     # ── CORS ─────────────────────────────────────────────────────────
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:4173"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:4173",
+    ]
 
     # ── Public URL (for webhooks) ────────────────────────────────────
     PUBLIC_BACKEND_URL: Optional[str] = None
@@ -50,8 +55,9 @@ class Settings(BaseSettings):
     # ── Soniox (STT) ─────────────────────────────────────────────────
     SONIOX_API_KEY: Optional[str] = None
 
-    # ── ElevenLabs (TTS) ─────────────────────────────────────────────
-    ELEVENLABS_API_KEY: Optional[str] = None
+    # ── ElevenLabs ───────────────────────────────────────────────────
+    ELEVENLABS_API_KEY: str = ""
+    ELEVENLABS_AGENT_ID: str = ""
 
     # ── OpenAI (LLM) ─────────────────────────────────────────────────
     OPENAI_API_KEY: Optional[str] = None

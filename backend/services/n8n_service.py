@@ -61,6 +61,7 @@ def build_payload(order: Any) -> dict[str, Any]:
         "status": order.status.value if hasattr(order.status, 'value') else str(order.status),
         "created_at": order.created_at.isoformat() if hasattr(order.created_at, 'isoformat') else str(order.created_at),
         "language": settings.DEFAULT_LANGUAGE,
+        "elevenlabs_agent_id": settings.ELEVENLABS_AGENT_ID,
     }
 
 

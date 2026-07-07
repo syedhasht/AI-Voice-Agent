@@ -1,17 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from config import get_settings
 from database import get_db
 from schemas import OrderCreate, OrderUpdate, OrderResponse, OrderListResponse, CallLogListResponse
-from services import OrderService, WorkflowService
+from services import OrderService, n8n_service
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
+
+settings = get_settings()
 
 
 @router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(data: OrderCreate, db: Session = Depends(get_db)):
     order = OrderService.create(db, data)
-    WorkflowService.start(order.id)
+    n8n_service.notify_order_created(order)
     db.refresh(order)
     return order
 

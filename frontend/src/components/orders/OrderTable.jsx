@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, PlusCircle, Phone, Loader } from 'lucide-react';
+import { Eye, PlusCircle, Phone, Loader, Headphones } from 'lucide-react';
 import { Badge, Button } from '../common';
 import { STATUS_LABELS, STATUS_COLORS } from '../../utils/constants';
-import { formatDate, isActiveStatus } from '../../utils/helpers';
+import { classNames, formatDate, isActiveStatus } from '../../utils/helpers';
 
 export default function OrderTable({ orders }) {
   const navigate = useNavigate();
@@ -88,17 +88,32 @@ export default function OrderTable({ orders }) {
                     </div>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={Eye}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/orders/${order.id}`);
-                      }}
-                    >
-                      View
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      {order.status === 'pending' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={Headphones}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/voice/${order.id}`);
+                          }}
+                        >
+                          Simulate
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={Eye}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/orders/${order.id}`);
+                        }}
+                      >
+                        View
+                      </Button>
+                    </div>
                   </td>
                 </motion.tr>
               );

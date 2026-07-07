@@ -23,6 +23,8 @@ class Order(Base):
     )
     notes = Column(Text, nullable=True)
     retell_call_id = Column(String(50), nullable=True, index=True)
+    conversation_id = Column(String(255), nullable=True, index=True)
+    elevenlabs_session_id = Column(String(255), nullable=True, index=True)
     transcript_json = Column(Text, nullable=True)
     call_duration_seconds = Column(Integer, nullable=True)
     created_at = Column(

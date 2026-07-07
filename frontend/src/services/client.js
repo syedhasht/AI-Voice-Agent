@@ -4,7 +4,7 @@ import { API_BASE } from '../utils/constants';
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
+  timeout: 30000,
 });
 
 api.interceptors.response.use(

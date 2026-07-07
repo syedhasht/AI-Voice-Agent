@@ -6,8 +6,9 @@ from fastapi.responses import JSONResponse
 
 from config import get_settings
 from database.session import Base, engine
-from api.routes import orders_router, twilio_router
+from api.routes import orders_router, twilio_router, agent_tools_router, elevenlabs_webhook_router
 from api.routes.webhooks import router as webhooks_router
+from api.routes.demo_voice import router as demo_voice_router
 from utils.logger import get_logger
 from sqlalchemy import inspect, text
 
@@ -19,13 +20,18 @@ def _run_migrations():
     """Add columns that may not exist on existing databases."""
     inspector = inspect(engine)
     columns = [c["name"] for c in inspector.get_columns("orders")]
-    if "retell_call_id" not in columns:
-        with engine.connect() as conn:
-            conn.execute(text(
-                "ALTER TABLE orders ADD COLUMN retell_call_id VARCHAR(50)"
-            ))
-            conn.commit()
-            logger.info("Migration: added retell_call_id column to orders")
+    for col, coltype in [
+        ("retell_call_id", "VARCHAR(50)"),
+        ("conversation_id", "VARCHAR(255)"),
+        ("elevenlabs_session_id", "VARCHAR(255)"),
+    ]:
+        if col not in columns:
+            with engine.connect() as conn:
+                conn.execute(text(
+                    f"ALTER TABLE orders ADD COLUMN {col} {coltype}"
+                ))
+                conn.commit()
+                logger.info("Migration: added %s column to orders", col)
 
 
 @asynccontextmanager
@@ -71,6 +77,9 @@ app.include_router(
     prefix="/api/webhooks",
     tags=["webhooks"],
 )
+app.include_router(agent_tools_router, prefix="/api")
+app.include_router(elevenlabs_webhook_router, prefix="/api")
+app.include_router(demo_voice_router, prefix="/api")
 
 
 @app.get("/health")

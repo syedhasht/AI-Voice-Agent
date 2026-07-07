@@ -8,6 +8,9 @@ export const STATUS = {
   MODIFIED: 'modified',
   REJECTED: 'rejected',
   NEED_HUMAN: 'need_human',
+  SIMULATING: 'simulating',
+  ELEVENLABS_SESSION: 'elevenlabs_session',
+  COMPLETED: 'completed',
 };
 
 export const STATUS_LABELS = {
@@ -20,6 +23,9 @@ export const STATUS_LABELS = {
   [STATUS.MODIFIED]: 'Modified',
   [STATUS.REJECTED]: 'Rejected',
   [STATUS.NEED_HUMAN]: 'Need Human',
+  [STATUS.SIMULATING]: 'Simulating',
+  [STATUS.ELEVENLABS_SESSION]: 'ElevenLabs Session',
+  [STATUS.COMPLETED]: 'Completed',
 };
 
 export const STATUS_COLORS = {
@@ -32,6 +38,9 @@ export const STATUS_COLORS = {
   [STATUS.MODIFIED]: 'purple',
   [STATUS.REJECTED]: 'red',
   [STATUS.NEED_HUMAN]: 'orange',
+  [STATUS.SIMULATING]: 'blue',
+  [STATUS.ELEVENLABS_SESSION]: 'blue',
+  [STATUS.COMPLETED]: 'emerald',
 };
 
 export const CALL_STEPS = {

@@ -75,5 +75,9 @@ export function mapOrderToApi(form) {
 }
 
 export function isActiveStatus(status) {
-  return ['queued', 'calling', 'in_progress', 'processing'].includes(status);
+  return ['queued', 'calling', 'in_progress', 'processing', 'simulating'].includes(status);
+}
+
+export function isFinalStatus(status) {
+  return ['confirmed', 'rejected', 'need_human', 'completed'].includes(status);
 }

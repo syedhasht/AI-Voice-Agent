@@ -1,16 +1,17 @@
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, ClipboardList, PlusCircle, Settings, X } from 'lucide-react';
+import { Headphones, LayoutDashboard, ClipboardList, PlusCircle, Settings, X } from 'lucide-react';
 import { classNames } from '../../utils/helpers';
 
 const iconMap = {
-  LayoutDashboard, ClipboardList, PlusCircle, Settings,
+  Headphones, LayoutDashboard, ClipboardList, PlusCircle, Settings,
 };
 
 const items = [
   { label: 'Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
   { label: 'Orders', path: '/orders', icon: 'ClipboardList' },
   { label: 'Create Order', path: '/create-order', icon: 'PlusCircle' },
+  { label: 'Voice Demo', path: '/voice-demo', icon: 'Headphones' },
   { label: 'Settings', path: '/settings', icon: 'Settings' },
 ];
 
