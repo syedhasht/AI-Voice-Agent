@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { classNames } from '../../utils/helpers';
 
-const Input = forwardRef(({ label, error, icon: Icon, className, ...props }, ref) => (
+const Input = forwardRef(({ label, error, icon: Icon, prefix, className, ...props }, ref) => (
   <div className="space-y-1.5">
     {label && (
       <label className="block text-sm font-medium text-text-secondary">
@@ -14,11 +14,22 @@ const Input = forwardRef(({ label, error, icon: Icon, className, ...props }, ref
           <Icon size={16} />
         </div>
       )}
+      {prefix && (
+        <span
+          className={classNames(
+            'absolute top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary select-none pointer-events-none',
+            Icon ? 'left-10' : 'left-3'
+          )}
+        >
+          {prefix}
+        </span>
+      )}
       <input
         ref={ref}
         className={classNames(
           'w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
           Icon && 'pl-10',
+          prefix && (Icon ? 'pl-[72px]' : 'pl-[52px]'),
           error && 'border-red-accent focus:ring-red-accent/20 focus:border-red-accent',
           className
         )}

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { Layout } from './components/layout'
-import { Login, Dashboard, Orders, CreateOrder, OrderDetails, Settings, VoiceDemo, VoiceSession } from './pages'
+import { Login, Dashboard, Orders, CreateOrder, OrderDetails, Settings, VoiceSession } from './pages'
 
 export default function App() {
   return (
@@ -14,7 +14,6 @@ export default function App() {
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/create-order" element={<CreateOrder />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/voice-demo" element={<VoiceDemo />} />
           <Route path="/voice/:order_id" element={<VoiceSession />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -5,6 +5,7 @@ from sqlalchemy import desc
 
 from models.order import Order
 from models.timeline import TimelineEntry
+from models.call_log import CallLog
 from schemas.order import OrderCreate, OrderUpdate
 
 
@@ -21,6 +22,16 @@ class OrderService:
         db.add(order)
         db.commit()
         db.refresh(order)
+
+        # Add initial timeline entry for Order Created
+        entry = TimelineEntry(
+            order_id=order.id,
+            status="pending",
+            note="Order registered in the system"
+        )
+        db.add(entry)
+        db.commit()
+        db.refresh(order)
         return order
 
     @staticmethod
@@ -35,10 +46,22 @@ class OrderService:
     def update(db: Session, db_order: Order, data: OrderUpdate) -> Order:
         update_data = data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
-            if value is not None:
-                if isinstance(value, str):
-                    value = value.strip()
-                setattr(db_order, field, value)
+          if value is not None:
+            if isinstance(value, str):
+              value = value.strip()
+            setattr(db_order, field, value)
+
+        if data.transcript_json is not None:
+          duration = data.call_duration_seconds or 0
+          outcome = db_order.status.value if db_order.status else "COMPLETED"
+          msg = f"Browser simulation call completed. Duration: {duration}s. Outcome: {outcome.upper()}"
+          log_entry = CallLog(
+            order_id=db_order.id,
+            step="call_completed",
+            message=msg
+          )
+          db.add(log_entry)
+
         db.commit()
         db.refresh(db_order)
         return db_order

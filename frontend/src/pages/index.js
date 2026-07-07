@@ -4,5 +4,4 @@ export { default as Orders } from './Orders';
 export { default as CreateOrder } from './CreateOrder';
 export { default as OrderDetails } from './OrderDetails';
 export { default as Settings } from './Settings';
-export { default as VoiceDemo } from './VoiceDemo';
 export { default as VoiceSession } from './VoiceSession';

@@ -20,18 +20,24 @@ export default function Orders() {
   const [sortDirection, setSortDirection] = useState('desc');
   const [page, setPage] = useState(1);
 
-  const load = useCallback(() => {
-    setLoading(true);
+  const load = useCallback((showSkeleton = false) => {
+    if (showSkeleton) {
+      setLoading(true);
+    }
     setError(null);
     fetchOrders()
       .then(setOrders)
       .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (showSkeleton) {
+          setLoading(false);
+        }
+      });
   }, []);
 
   useEffect(() => {
-    load();
-    const interval = setInterval(load, 3000);
+    load(true);
+    const interval = setInterval(() => load(false), 3000);
     return () => clearInterval(interval);
   }, [load]);
 

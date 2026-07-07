@@ -27,24 +27,32 @@ export default function OrderDetails() {
   const [form, setForm] = useState({ quantity: '', status: '', notes: '' });
   const prevStatusRef = useRef(null);
 
-  const load = useCallback(() => {
-    setLoading(true);
+  const load = useCallback((showSkeleton = false) => {
+    if (showSkeleton) {
+      setLoading(true);
+    }
     setError(null);
     fetchOrderById(id)
       .then((data) => {
-        prevStatusRef.current = order?.status;
-        setOrder(data);
+        setOrder((prev) => {
+          prevStatusRef.current = prev?.status;
+          return data;
+        });
         if (!editing) {
           setForm({ quantity: data.quantity, status: data.status, notes: data.notes || '' });
         }
       })
       .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [id]);
+      .finally(() => {
+        if (showSkeleton) {
+          setLoading(false);
+        }
+      });
+  }, [id, editing]);
 
   useEffect(() => {
-    load();
-    const interval = setInterval(load, 3000);
+    load(true);
+    const interval = setInterval(() => load(false), 3000);
     return () => clearInterval(interval);
   }, [id, load]);
 

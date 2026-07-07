@@ -10,31 +10,40 @@ import { formatTimeAgo } from '../utils/helpers';
 function computeKPIs(orders) {
   const total = orders.length;
   const pending = orders.filter((o) => o.status === 'pending').length;
-  const confirmed = orders.filter((o) => o.status === 'confirmed').length;
-  const modified = orders.filter((o) => o.status === 'modified').length;
+  
+  const modifiedOrders = orders.filter((o) => 
+    o.status === 'completed' && o.timeline?.some(t => t.note && t.note.toLowerCase().includes('quantity changed'))
+  );
+  const modified = modifiedOrders.length;
+  
+  const confirmedOrders = orders.filter((o) => 
+    o.status === 'completed' && !o.timeline?.some(t => t.note && t.note.toLowerCase().includes('quantity changed'))
+  );
+  const confirmed = confirmedOrders.length;
+  
   const rejected = orders.filter((o) => o.status === 'rejected').length;
   const needHuman = orders.filter((o) => o.status === 'need_human').length;
 
-  const lastMonth = orders.filter(
-    (o) => new Date(o.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-  ).length;
+  const getPct = (count) => {
+    return total > 0 ? `${Math.round((count / total) * 100)}%` : '0%';
+  };
 
   return [
-    { label: 'Total Orders', value: total, change: '+12%', changeType: 'positive', icon: 'ClipboardList', color: 'primary' },
-    { label: 'Pending', value: pending, change: '-', changeType: pending > 0 ? 'negative' : 'positive', icon: 'Clock', color: 'amber' },
-    { label: 'Confirmed', value: confirmed, change: '+', changeType: 'positive', icon: 'CheckCircle', color: 'emerald' },
-    { label: 'Modified', value: modified, change: '-', changeType: 'negative', icon: 'RefreshCw', color: 'purple' },
-    { label: 'Rejected', value: rejected, change: '-', changeType: 'positive', icon: 'XCircle', color: 'red' },
-    { label: 'Need Human', value: needHuman, change: '-', changeType: 'negative', icon: 'Headphones', color: 'orange' },
+    { label: 'Total Orders', value: total, change: '100%', changeType: 'positive', icon: 'ClipboardList', color: 'primary' },
+    { label: 'Pending', value: pending, change: getPct(pending), changeType: 'neutral', icon: 'Clock', color: 'amber' },
+    { label: 'Confirmed', value: confirmed, change: getPct(confirmed), changeType: 'positive', icon: 'CheckCircle', color: 'emerald' },
+    { label: 'Modified', value: modified, change: getPct(modified), changeType: 'positive', icon: 'RefreshCw', color: 'purple' },
+    { label: 'Rejected', value: rejected, change: getPct(rejected), changeType: 'negative', icon: 'XCircle', color: 'red' },
+    { label: 'Need Human', value: needHuman, change: getPct(needHuman), changeType: 'negative', icon: 'Headphones', color: 'orange' },
   ];
 }
 
 function buildActivity(orders) {
   return orders.slice(0, 7).map((o) => ({
     id: o.id,
-    action: `Order ${o.displayId} - ${o.customer} (${o.status})`,
+    action: `Order ${o.displayId} - ${o.customer} (${o.status === 'completed' ? 'completed' : o.status})`,
     time: formatTimeAgo(o.createdAt),
-    type: o.status === 'confirmed' ? 'confirmed' : o.status === 'rejected' ? 'rejected' : o.status === 'modified' ? 'modified' : o.status === 'need_human' ? 'need_human' : o.status === 'calling' ? 'calling' : 'pending',
+    type: o.status === 'completed' ? 'confirmed' : o.status === 'rejected' ? 'rejected' : o.status === 'need_human' ? 'need_human' : o.status === 'calling' ? 'calling' : 'pending',
   }));
 }
 
@@ -44,27 +53,50 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ callRate: '--', avgDuration: '--', weeklyOrders: '--' });
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
-    setLoading(true);
+  const load = useCallback((showSkeleton = false) => {
+    if (showSkeleton) {
+      setLoading(true);
+    }
     fetchOrders()
       .then((orders) => {
         setKpis(computeKPIs(orders));
         setActivities(buildActivity(orders));
+        
+        const finalizedOrders = orders.filter((o) => ['completed', 'rejected', 'need_human'].includes(o.status));
+        const successfulOrders = orders.filter((o) => o.status === 'completed');
+        const callRate = finalizedOrders.length > 0 
+          ? `${Math.round((successfulOrders.length / finalizedOrders.length) * 100)}%`
+          : '100%';
+
+        const callsWithDuration = orders.filter((o) => o.callDurationSeconds && o.callDurationSeconds > 0);
+        let avgDuration = '0s';
+        if (callsWithDuration.length > 0) {
+          const totalSeconds = callsWithDuration.reduce((sum, o) => sum + o.callDurationSeconds, 0);
+          const avgSeconds = Math.round(totalSeconds / callsWithDuration.length);
+          const minutes = Math.floor(avgSeconds / 60);
+          const seconds = avgSeconds % 60;
+          avgDuration = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+        }
+
         setStats({
-          callRate: '76%',
-          avgDuration: '2m 34s',
+          callRate,
+          avgDuration,
           weeklyOrders: orders.filter(
             (o) => new Date(o.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
           ).length,
         });
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (showSkeleton) {
+          setLoading(false);
+        }
+      });
   }, []);
 
   useEffect(() => {
-    load();
-    const interval = setInterval(load, 3000);
+    load(true);
+    const interval = setInterval(() => load(false), 3000);
     return () => clearInterval(interval);
   }, [load]);
 

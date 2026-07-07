@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Phone, MessageSquare, CheckCircle, Loader } from 'lucide-react';
-import { classNames } from '../../utils/helpers';
+import { Phone, MessageSquare, CheckCircle, Loader, RefreshCw, XCircle, Headphones } from 'lucide-react';
+import { classNames, formatDate } from '../../utils/helpers';
 import { CALL_STEPS } from '../../utils/constants';
 
 const stepIcons = {
@@ -12,10 +12,23 @@ const stepIcons = {
   processing: Loader,
   call_completed: CheckCircle,
   completed: CheckCircle,
-  call_failed: Loader,
+  confirmed: CheckCircle,
+  modified: RefreshCw,
+  cancelled: XCircle,
+  escalated: Headphones,
+  call_failed: XCircle,
   webhook_sending: Loader,
   webhook_delivered: CheckCircle,
-  webhook_failed: Loader,
+  webhook_failed: XCircle,
+};
+
+const friendlySteps = {
+  call_started: 'Call Started',
+  call_completed: 'Call Completed',
+  confirmed: 'Order Confirmed',
+  modified: 'Order Modified',
+  cancelled: 'Order Cancelled',
+  escalated: 'Escalated to Human',
 };
 
 export default function CallLogViewer({ logs }) {
@@ -60,10 +73,13 @@ export default function CallLogViewer({ logs }) {
                 'text-sm',
                 isActive ? 'font-medium text-primary' : 'text-text-secondary'
               )}>
-                {CALL_STEPS[log.step] || log.step}
+                {friendlySteps[log.step] || CALL_STEPS[log.step] || log.step}
               </p>
               {log.message && (
-                <p className="text-xs text-text-tertiary mt-0.5">{log.message}</p>
+                <p className="text-xs text-text-secondary mt-0.5">{log.message}</p>
+              )}
+              {log.timestamp && (
+                <p className="text-[10px] text-text-tertiary mt-0.5">{formatDate(log.timestamp)}</p>
               )}
             </div>
           </motion.div>

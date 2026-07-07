@@ -11,7 +11,6 @@ const items = [
   { label: 'Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
   { label: 'Orders', path: '/orders', icon: 'ClipboardList' },
   { label: 'Create Order', path: '/create-order', icon: 'PlusCircle' },
-  { label: 'Voice Demo', path: '/voice-demo', icon: 'Headphones' },
   { label: 'Settings', path: '/settings', icon: 'Settings' },
 ];
 

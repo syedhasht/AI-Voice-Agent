@@ -18,13 +18,17 @@ export default function CreateOrder() {
     medicine: '',
     quantity: '',
   });
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [errors, setErrors] = useState({});
 
   const validate = () => {
     const errs = {};
     if (!form.customer.trim()) errs.customer = 'Customer name is required';
-    if (!form.phone.trim()) errs.phone = 'Phone number is required';
-    else if (!/^[\d\s\-+()]{7,}$/.test(form.phone)) errs.phone = 'Enter a valid phone number';
+    if (!form.phone.trim()) {
+      errs.phone = 'Phone number is required';
+    } else if (phoneDigits.length !== 10) {
+      errs.phone = 'Phone number must be exactly 10 digits';
+    }
     if (!form.medicine.trim()) errs.medicine = 'Medicine name is required';
     if (!form.quantity || Number(form.quantity) < 1) errs.quantity = 'Quantity must be at least 1';
     return errs;
@@ -51,6 +55,13 @@ export default function CreateOrder() {
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const handlePhoneChange = (val) => {
+    const digits = val.replace(/\D/g, '').slice(0, 10);
+    setPhoneDigits(digits);
+    setForm((prev) => ({ ...prev, phone: digits ? `+92${digits}` : '' }));
+    if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
   };
 
   if (submitted) {
@@ -94,10 +105,11 @@ export default function CreateOrder() {
               />
               <Input
                 label="Phone Number"
-                placeholder="e.g. +1 (555) 123-4567"
+                placeholder="3014605967"
                 icon={Phone}
-                value={form.phone}
-                onChange={(e) => updateField('phone', e.target.value)}
+                prefix="+92"
+                value={phoneDigits}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 error={errors.phone}
               />
             </div>

@@ -1,5 +1,20 @@
+export function parseUtcDate(dateString) {
+  if (!dateString) return new Date();
+  let isoString = dateString;
+  if (
+    typeof dateString === 'string' &&
+    !dateString.endsWith('Z') &&
+    !/\+\d{2}:\d{2}$/.test(dateString) &&
+    !/-\d{2}:\d{2}$/.test(dateString)
+  ) {
+    isoString = dateString.replace(' ', 'T') + 'Z';
+  }
+  return new Date(isoString);
+}
+
 export function formatDate(dateString) {
-  const date = new Date(dateString);
+  if (!dateString) return '';
+  const date = parseUtcDate(dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -11,8 +26,9 @@ export function formatDate(dateString) {
 }
 
 export function formatTimeAgo(dateString) {
+  if (!dateString) return '';
   const now = new Date();
-  const date = new Date(dateString);
+  const date = parseUtcDate(dateString);
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);

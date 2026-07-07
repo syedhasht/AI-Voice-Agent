@@ -29,6 +29,8 @@ class OrderUpdate(BaseModel):
     quantity: Optional[int] = Field(None, ge=1)
     status: Optional[OrderStatus] = None
     notes: Optional[str] = None
+    transcript_json: Optional[str] = None
+    call_duration_seconds: Optional[int] = None
 
 
 class TimelineEntryResponse(BaseModel):

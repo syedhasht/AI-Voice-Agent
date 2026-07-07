@@ -23,6 +23,7 @@ export default function VoiceSession() {
   const conversationRef = useRef(null);
   const chatRef = useRef(null);
   const redirectTimerRef = useRef(null);
+  const callStartRef = useRef(null);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -58,6 +59,7 @@ export default function VoiceSession() {
             try {
               const res = await api.post('/agent/confirm-order', { order_id: Number(order_id) });
               console.log('confirm_order success:', res.data);
+              setStatus('completed');
               return 'Order successfully confirmed.';
             } catch (err) {
               console.error('confirm_order failed:', err);
@@ -69,6 +71,7 @@ export default function VoiceSession() {
             try {
               const res = await api.post('/agent/confirm-order', { order_id: Number(order_id) });
               console.log('confirm_order success:', res.data);
+              setStatus('completed');
               return 'Order successfully confirmed.';
             } catch (err) {
               console.error('confirm_order failed:', err);
@@ -83,6 +86,7 @@ export default function VoiceSession() {
                 quantity: Number(quantity)
               });
               console.log('modify_order success:', res.data);
+              setStatus('completed');
               return `Order successfully modified to quantity ${quantity}.`;
             } catch (err) {
               console.error('modify_order failed:', err);
@@ -97,6 +101,7 @@ export default function VoiceSession() {
                 quantity: Number(quantity)
               });
               console.log('modify_order success:', res.data);
+              setStatus('completed');
               return `Order successfully modified to quantity ${quantity}.`;
             } catch (err) {
               console.error('modify_order failed:', err);
@@ -108,6 +113,7 @@ export default function VoiceSession() {
             try {
               const res = await api.post('/agent/cancel-order', { order_id: Number(order_id) });
               console.log('cancel_order success:', res.data);
+              setStatus('rejected');
               return 'Order successfully cancelled.';
             } catch (err) {
               console.error('cancel_order failed:', err);
@@ -119,6 +125,7 @@ export default function VoiceSession() {
             try {
               const res = await api.post('/agent/cancel-order', { order_id: Number(order_id) });
               console.log('cancel_order success:', res.data);
+              setStatus('rejected');
               return 'Order successfully cancelled.';
             } catch (err) {
               console.error('cancel_order failed:', err);
@@ -133,6 +140,7 @@ export default function VoiceSession() {
                 reason: reason || ''
               });
               console.log('request_human success:', res.data);
+              setStatus('need_human');
               return 'Human representative requested.';
             } catch (err) {
               console.error('request_human failed:', err);
@@ -147,6 +155,7 @@ export default function VoiceSession() {
                 reason: reason || ''
               });
               console.log('request_human success:', res.data);
+              setStatus('need_human');
               return 'Human representative requested.';
             } catch (err) {
               console.error('request_human failed:', err);
@@ -161,10 +170,15 @@ export default function VoiceSession() {
         onConnect: ({ conversationId }) => {
           console.log('ElevenLabs connected:', conversationId);
           setPhase('conversing');
+          callStartRef.current = Date.now();
         },
         onDisconnect: () => {
           console.log('ElevenLabs disconnected');
           setPhase('done');
+          setMessages((current) => {
+            saveTranscript(current);
+            return current;
+          });
         },
         onMessage: (msg) => {
           setMessages((prev) => [...prev, { role: msg.role || 'agent', text: msg.message }]);
@@ -188,6 +202,28 @@ export default function VoiceSession() {
     }
   }, [order_id]);
 
+  const saveTranscript = useCallback(async (currentMessages) => {
+    if (!currentMessages || currentMessages.length === 0) return;
+    const durationMs = callStartRef.current ? (Date.now() - callStartRef.current) : 0;
+    const durationSec = Math.round(durationMs / 1000);
+    try {
+      const transcriptJson = JSON.stringify(
+        currentMessages.map((m) => ({
+          speaker: m.role === 'user' ? 'Customer' : 'AI',
+          text: m.text,
+          timestamp: new Date().toISOString()
+        }))
+      );
+      await api.put(`/orders/${order_id}`, {
+        transcript_json: transcriptJson,
+        call_duration_seconds: durationSec
+      });
+      console.log('Saved conversation transcript successfully.');
+    } catch (err) {
+      console.error('Failed to save conversation transcript:', err);
+    }
+  }, [order_id]);
+
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
@@ -200,6 +236,25 @@ export default function VoiceSession() {
     if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
     if (conversationRef.current) {
       try { await conversationRef.current.endSession(); } catch {}
+    }
+    if (messages.length > 0) {
+      const durationMs = callStartRef.current ? (Date.now() - callStartRef.current) : 0;
+      const durationSec = Math.round(durationMs / 1000);
+      try {
+        const transcriptJson = JSON.stringify(
+          messages.map((m) => ({
+            speaker: m.role === 'user' ? 'Customer' : 'AI',
+            text: m.text,
+            timestamp: new Date().toISOString()
+          }))
+        );
+        await api.put(`/orders/${order_id}`, {
+          transcript_json: transcriptJson,
+          call_duration_seconds: durationSec
+        });
+      } catch (err) {
+        console.error('Failed to save transcript:', err);
+      }
     }
     navigate('/orders');
   };

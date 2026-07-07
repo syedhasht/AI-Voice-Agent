@@ -105,7 +105,24 @@ def start_elevenlabs_session(order_id: int):
 
         conversation_id = str(uuid.uuid4())
         order.conversation_id = conversation_id
+        order.status = OrderStatus.SIMULATING
         order.updated_at = datetime.now(timezone.utc)
+
+        # Add timeline entry
+        timeline_entry = TimelineEntry(
+            order_id=order.id,
+            status=OrderStatus.SIMULATING.value,
+            note="Simulation call started on web UI"
+        )
+        db.add(timeline_entry)
+
+        # Add call log entry
+        call_log_entry = CallLog(
+            order_id=order.id,
+            step="call_started",
+            message="Browser simulation call started"
+        )
+        db.add(call_log_entry)
         db.commit()
         db.refresh(order)
 
