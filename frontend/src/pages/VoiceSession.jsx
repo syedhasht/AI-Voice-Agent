@@ -24,11 +24,16 @@ export default function VoiceSession() {
   const chatRef = useRef(null);
   const redirectTimerRef = useRef(null);
   const callStartRef = useRef(null);
+  const messagesRef = useRef([]);
 
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
+  }, [messages]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
   }, [messages]);
 
   useEffect(() => {
@@ -38,6 +43,44 @@ export default function VoiceSession() {
         try { conversationRef.current.endSession(); } catch {}
       }
     };
+  }, []);
+
+  const saveTranscript = useCallback(async (currentMessages) => {
+    const durationMs = callStartRef.current ? (Date.now() - callStartRef.current) : 0;
+    const durationSec = Math.round(durationMs / 1000);
+    try {
+      const payload = {
+        call_duration_seconds: durationSec
+      };
+      if (currentMessages && currentMessages.length > 0) {
+        payload.transcript_json = JSON.stringify(
+          currentMessages.map((m) => ({
+            speaker: m.role === 'user' ? 'Customer' : 'AI',
+            text: m.text,
+            timestamp: new Date().toISOString()
+          }))
+        );
+      } else {
+        payload.transcript_json = "[]";
+      }
+      await api.put(`/orders/${order_id}`, payload);
+      console.log('Saved conversation details successfully.');
+    } catch (err) {
+      console.error('Failed to save conversation details:', err);
+    }
+  }, [order_id]);
+
+  const triggerAutoHangup = useCallback(() => {
+    setTimeout(async () => {
+      if (conversationRef.current) {
+        try {
+          console.log('Auto-ending ElevenLabs session after tool call...');
+          await conversationRef.current.endSession();
+        } catch (err) {
+          console.error('Failed to auto-end session:', err);
+        }
+      }
+    }, 4500);
   }, []);
 
   const doStartConversation = useCallback(async () => {
@@ -60,6 +103,7 @@ export default function VoiceSession() {
               const res = await api.post('/agent/confirm-order', { order_id: Number(order_id) });
               console.log('confirm_order success:', res.data);
               setStatus('completed');
+              triggerAutoHangup();
               return 'Order successfully confirmed.';
             } catch (err) {
               console.error('confirm_order failed:', err);
@@ -72,6 +116,7 @@ export default function VoiceSession() {
               const res = await api.post('/agent/confirm-order', { order_id: Number(order_id) });
               console.log('confirm_order success:', res.data);
               setStatus('completed');
+              triggerAutoHangup();
               return 'Order successfully confirmed.';
             } catch (err) {
               console.error('confirm_order failed:', err);
@@ -87,6 +132,7 @@ export default function VoiceSession() {
               });
               console.log('modify_order success:', res.data);
               setStatus('completed');
+              triggerAutoHangup();
               return `Order successfully modified to quantity ${quantity}.`;
             } catch (err) {
               console.error('modify_order failed:', err);
@@ -102,6 +148,7 @@ export default function VoiceSession() {
               });
               console.log('modify_order success:', res.data);
               setStatus('completed');
+              triggerAutoHangup();
               return `Order successfully modified to quantity ${quantity}.`;
             } catch (err) {
               console.error('modify_order failed:', err);
@@ -114,6 +161,7 @@ export default function VoiceSession() {
               const res = await api.post('/agent/cancel-order', { order_id: Number(order_id) });
               console.log('cancel_order success:', res.data);
               setStatus('rejected');
+              triggerAutoHangup();
               return 'Order successfully cancelled.';
             } catch (err) {
               console.error('cancel_order failed:', err);
@@ -126,6 +174,7 @@ export default function VoiceSession() {
               const res = await api.post('/agent/cancel-order', { order_id: Number(order_id) });
               console.log('cancel_order success:', res.data);
               setStatus('rejected');
+              triggerAutoHangup();
               return 'Order successfully cancelled.';
             } catch (err) {
               console.error('cancel_order failed:', err);
@@ -141,6 +190,7 @@ export default function VoiceSession() {
               });
               console.log('request_human success:', res.data);
               setStatus('need_human');
+              triggerAutoHangup();
               return 'Human representative requested.';
             } catch (err) {
               console.error('request_human failed:', err);
@@ -156,6 +206,7 @@ export default function VoiceSession() {
               });
               console.log('request_human success:', res.data);
               setStatus('need_human');
+              triggerAutoHangup();
               return 'Human representative requested.';
             } catch (err) {
               console.error('request_human failed:', err);
@@ -166,6 +217,7 @@ export default function VoiceSession() {
         dynamicVariables: {
           customer: data.customer || '',
           medicine: data.medicine || '',
+          quantity: String(data.quantity || '1'),
         },
         onConnect: ({ conversationId }) => {
           console.log('ElevenLabs connected:', conversationId);
@@ -175,10 +227,10 @@ export default function VoiceSession() {
         onDisconnect: () => {
           console.log('ElevenLabs disconnected');
           setPhase('done');
-          setMessages((current) => {
-            saveTranscript(current);
-            return current;
-          });
+          saveTranscript(messagesRef.current);
+          redirectTimerRef.current = setTimeout(() => {
+            navigate(`/orders/${order_id}`);
+          }, 3000);
         },
         onMessage: (msg) => {
           setMessages((prev) => [...prev, { role: msg.role || 'agent', text: msg.message }]);
@@ -200,29 +252,7 @@ export default function VoiceSession() {
       setError(err.response?.data?.detail || err.message || 'Failed to start session');
       setPhase('done');
     }
-  }, [order_id]);
-
-  const saveTranscript = useCallback(async (currentMessages) => {
-    if (!currentMessages || currentMessages.length === 0) return;
-    const durationMs = callStartRef.current ? (Date.now() - callStartRef.current) : 0;
-    const durationSec = Math.round(durationMs / 1000);
-    try {
-      const transcriptJson = JSON.stringify(
-        currentMessages.map((m) => ({
-          speaker: m.role === 'user' ? 'Customer' : 'AI',
-          text: m.text,
-          timestamp: new Date().toISOString()
-        }))
-      );
-      await api.put(`/orders/${order_id}`, {
-        transcript_json: transcriptJson,
-        call_duration_seconds: durationSec
-      });
-      console.log('Saved conversation transcript successfully.');
-    } catch (err) {
-      console.error('Failed to save conversation transcript:', err);
-    }
-  }, [order_id]);
+  }, [order_id, triggerAutoHangup, saveTranscript, navigate]);
 
   const hasStartedRef = useRef(false);
 
@@ -237,25 +267,7 @@ export default function VoiceSession() {
     if (conversationRef.current) {
       try { await conversationRef.current.endSession(); } catch {}
     }
-    if (messages.length > 0) {
-      const durationMs = callStartRef.current ? (Date.now() - callStartRef.current) : 0;
-      const durationSec = Math.round(durationMs / 1000);
-      try {
-        const transcriptJson = JSON.stringify(
-          messages.map((m) => ({
-            speaker: m.role === 'user' ? 'Customer' : 'AI',
-            text: m.text,
-            timestamp: new Date().toISOString()
-          }))
-        );
-        await api.put(`/orders/${order_id}`, {
-          transcript_json: transcriptJson,
-          call_duration_seconds: durationSec
-        });
-      } catch (err) {
-        console.error('Failed to save transcript:', err);
-      }
-    }
+    await saveTranscript(messagesRef.current);
     navigate('/orders');
   };
 

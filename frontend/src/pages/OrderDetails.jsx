@@ -79,7 +79,6 @@ export default function OrderDetails() {
   };
 
   const handleDelete = async () => {
-    if (isActive) return;
     setDeleting(true);
     try {
       await deleteOrder(id);
@@ -206,7 +205,7 @@ export default function OrderDetails() {
                       <Button variant="secondary" size="sm" icon={Edit3} onClick={() => setEditing(true)} disabled={isActive} title={isActive ? 'Cannot edit during active call' : ''}>
                         Edit
                       </Button>
-                      <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setShowDelete(true)} className="text-red-accent hover:bg-red-accent/10" disabled={isActive} title={isActive ? 'Cannot delete during active call' : ''}>
+                      <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setShowDelete(true)} className="text-red-accent hover:bg-red-accent/10">
                         Delete
                       </Button>
                     </>

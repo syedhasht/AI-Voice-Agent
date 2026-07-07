@@ -7,6 +7,7 @@ from models.order import Order
 from models.timeline import TimelineEntry
 from models.call_log import CallLog
 from schemas.order import OrderCreate, OrderUpdate
+from utils.status import OrderStatus
 
 
 class OrderService:
@@ -53,6 +54,19 @@ class OrderService:
 
         if data.transcript_json is not None:
           duration = data.call_duration_seconds or 0
+          
+          # Transition transient statuses to COMPLETED on call finish
+          if db_order.status in (OrderStatus.SIMULATING, OrderStatus.PENDING, OrderStatus.CALLING, OrderStatus.IN_PROGRESS):
+            db_order.status = OrderStatus.COMPLETED
+            
+            # Add timeline entry
+            timeline_entry = TimelineEntry(
+              order_id=db_order.id,
+              status=OrderStatus.COMPLETED.value,
+              note="Call completed; order marked confirmed"
+            )
+            db.add(timeline_entry)
+            
           outcome = db_order.status.value if db_order.status else "COMPLETED"
           msg = f"Browser simulation call completed. Duration: {duration}s. Outcome: {outcome.upper()}"
           log_entry = CallLog(

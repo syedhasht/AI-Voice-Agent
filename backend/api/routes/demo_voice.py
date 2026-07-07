@@ -57,6 +57,7 @@ class ElevenLabsSessionResponse(BaseModel):
     signed_url: Optional[str] = None
     customer: Optional[str] = None
     medicine: Optional[str] = None
+    quantity: Optional[int] = None
 
 
 class StartSessionResponse(BaseModel):
@@ -141,6 +142,7 @@ def start_elevenlabs_session(order_id: int):
             signed_url=signed_url,
             customer=order.customer_name,
             medicine=order.medicine_name,
+            quantity=order.quantity,
         )
     except HTTPException:
         raise
