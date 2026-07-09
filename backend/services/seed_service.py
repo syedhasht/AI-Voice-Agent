@@ -152,7 +152,7 @@ class SeedService:
             status = random.choice(order_statuses)
             notes = f"Mock order notes for {med['name']}"
             created_at = datetime.now() - timedelta(
-                days=random.randint(1, 90),
+                days=random.randint(0, 90),
                 hours=random.randint(0, 23),
                 minutes=random.randint(0, 59),
                 seconds=random.randint(0, 59)

@@ -17,8 +17,8 @@ def get_summary(db: Session = Depends(get_db)):
     total_orders = db.query(Order).count()
     total_medicines = db.query(Medicine).count()
 
-    # 2. Calls today (started_at equals today's date in UTC)
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # 2. Calls today (started_at equals today's date in local server time)
+    today_str = datetime.now().strftime("%Y-%m-%d")
     calls_today = db.query(Call).filter(text("date(started_at) = :today")).params(today=today_str).count()
 
     # 3. Order statuses aggregates
