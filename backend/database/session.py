@@ -14,9 +14,11 @@ if db_url.startswith("sqlite:///"):
         abs_db_path = os.path.abspath(os.path.join(backend_dir, db_path))
         db_url = f"sqlite:///{abs_db_path}"
 
+is_sqlite = db_url.startswith("sqlite:///")
+
 engine = create_engine(
     db_url,
-    connect_args={"check_same_thread": False},
+    connect_args={"check_same_thread": False} if is_sqlite else {},
     echo=settings.DEBUG,
 )
 
