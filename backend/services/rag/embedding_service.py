@@ -19,7 +19,7 @@ class GeminiRestEmbeddings(Embeddings):
             logger.error("GEMINI_API_KEY is not configured for embeddings")
             return [0.0] * 768
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key={api_key}"
         payload = {
             "model": "models/text-embedding-004",
             "content": {

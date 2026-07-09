@@ -91,17 +91,18 @@ IMPORTANT CONTEXT:
 - calls.outcome values: same as order status values
 - calls.sentiment values: 'Positive', 'Negative', 'Neutral'
 - Revenue is calculated as: orders.quantity * medicines.unit_price (join orders with medicines on orders.medicine_id = medicines.id)
-- For "today" use: DATE(created_at) = DATE('now')
-- For "yesterday" use: DATE(created_at) = DATE('now', '-1 day')
-- For "this week" use: DATE(created_at) >= DATE('now', '-7 days')
+- For "today" use: DATE(created_at) = CURRENT_DATE
+- For "yesterday" use: DATE(created_at) = CURRENT_DATE - INTERVAL '1 day'
+- For "this week" use: created_at >= CURRENT_DATE - INTERVAL '7 days'
+- For "last N days" use: created_at >= CURRENT_DATE - INTERVAL 'N days'
 - "callback" or "need human" means: calls.outcome = 'NEED_HUMAN' OR orders.status = 'NEED_HUMAN'
 - "cancellation" or "rejected" means: status = 'REJECTED'
 - "confirmation" or "confirmed" means: status IN ('CONFIRMED', 'COMPLETED')
 - "sales" or "revenue" means: SUM(orders.quantity * medicines.unit_price)
 - Always use LIMIT 50 unless the user asks for a specific number
 - Use aliases for columns to make them human-readable (e.g., COUNT(*) AS total_calls)
-- For date grouping, use strftime('%Y-%m-%d', created_at) AS date
-- For hour grouping, use strftime('%H', started_at) AS hour
+- For date grouping, use TO_CHAR(created_at, 'YYYY-MM-DD') AS date
+- For hour grouping, use TO_CHAR(started_at, 'HH24') AS hour
 
 TASK:
 Convert the following business question into a valid SQLite SELECT query.
