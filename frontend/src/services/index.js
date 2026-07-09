@@ -5,8 +5,18 @@ export {
   updateOrder,
   deleteOrder,
   startElevenLabsSession,
+  fetchDashboardSummary,
+  fetchDashboardCharts,
+  fetchRecentOrders,
+  fetchRecentCalls,
+  fetchCustomers,
+  fetchCustomerById,
+  fetchCalls,
+  fetchCallById,
   demoVoice,
   startSession,
   voiceTurn,
   endSession,
+  queryAssistant,
 } from './api';
+

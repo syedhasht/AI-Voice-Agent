@@ -31,6 +31,45 @@ export async function startElevenLabsSession(orderId) {
   return data;
 }
 
+export async function fetchDashboardSummary() {
+  const { data } = await api.get('/dashboard/summary');
+  return data;
+}
+
+export async function fetchDashboardCharts() {
+  const { data } = await api.get('/dashboard/charts');
+  return data;
+}
+
+export async function fetchRecentOrders() {
+  const { data } = await api.get('/dashboard/recent-orders');
+  return data;
+}
+
+export async function fetchRecentCalls() {
+  const { data } = await api.get('/dashboard/recent-calls');
+  return data;
+}
+
+export async function fetchCustomers(params = {}) {
+  const { data } = await api.get('/customers', { params });
+  return data;
+}
+export async function fetchCustomerById(customerId) {
+  const { data } = await api.get(`/customers/${customerId}`);
+  return data;
+}
+
+export async function fetchCalls(params = {}) {
+  const { data } = await api.get('/calls', { params });
+  return data;
+}
+
+export async function fetchCallById(callId) {
+  const { data } = await api.get(`/calls/${callId}`);
+  return data;
+}
+
 // Deprecated stubs — kept for backward compatibility
 export async function demoVoice() {
   throw new Error('demoVoice is deprecated. Use startElevenLabsSession instead.');
@@ -47,3 +86,17 @@ export async function voiceTurn() {
 export async function endSession() {
   throw new Error('endSession is deprecated. ElevenLabs handles session lifecycle.');
 }
+
+/**
+ * Query the Enterprise AI Assistant with a natural language question.
+ * Uses a 90s timeout since Gemini + SQL execution may take up to ~10s.
+ */
+export async function queryAssistant(question) {
+  const { data } = await api.post(
+    '/assistant/query',
+    { question },
+    { timeout: 90000 }
+  );
+  return data;
+}
+

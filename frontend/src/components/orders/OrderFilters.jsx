@@ -13,7 +13,7 @@ export default function OrderFilters({ search, onSearchChange, statusFilter, onS
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
           <input
             type="text"
-            placeholder="Search orders, customers, medicines..."
+            placeholder="Search by Order ID, customer name, phone, medicine..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -47,9 +47,12 @@ export default function OrderFilters({ search, onSearchChange, statusFilter, onS
               className="px-3 py-2 rounded-lg border border-border bg-white text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             >
               <option value="all">All Statuses</option>
-              {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
+              <option value="pending">Pending Call</option>
+              <option value="in_progress">In Call</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="modified">Modified</option>
+              <option value="rejected">Rejected</option>
+              <option value="need_human">Need Human</option>
             </select>
           </div>
           <div className="flex flex-col gap-1.5">

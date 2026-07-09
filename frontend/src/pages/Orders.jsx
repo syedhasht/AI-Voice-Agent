@@ -56,7 +56,16 @@ export default function Orders() {
     }
 
     if (statusFilter !== 'all') {
-      result = result.filter((o) => o.status === statusFilter);
+      const statusMap = {
+        pending: ['pending', 'queued'],
+        in_progress: ['calling', 'in_progress', 'processing', 'simulating', 'elevenlabs_session'],
+        confirmed: ['confirmed', 'completed'],
+        modified: ['modified'],
+        rejected: ['rejected'],
+        need_human: ['need_human']
+      };
+      const allowed = statusMap[statusFilter];
+      result = result.filter((o) => allowed ? allowed.includes(o.status) : o.status === statusFilter);
     }
 
     result.sort((a, b) => {
@@ -139,7 +148,7 @@ export default function Orders() {
           </div>
         ) : (
           <>
-            <OrderTable orders={paginated} onRefresh={load} />
+            <OrderTable orders={paginated} search={search} onRefresh={load} />
 
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-2">

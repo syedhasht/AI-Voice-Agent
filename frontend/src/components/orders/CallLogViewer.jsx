@@ -20,15 +20,34 @@ const stepIcons = {
   webhook_sending: Loader,
   webhook_delivered: CheckCircle,
   webhook_failed: XCircle,
+  simulation_started: Phone,
+  session_completed: CheckCircle,
+  session_ended: XCircle,
+  session_escalated: Headphones
 };
 
 const friendlySteps = {
   call_started: 'Call Started',
+  simulation_started: 'Call Started',
   call_completed: 'Call Completed',
+  session_completed: 'Call Completed',
+  session_ended: 'Call Completed',
+  session_escalated: 'Call Escalated',
   confirmed: 'Order Confirmed',
   modified: 'Order Modified',
   cancelled: 'Order Cancelled',
   escalated: 'Escalated to Human',
+};
+
+const calcDuration = (start, end) => {
+  if (!start || !end) return '0s';
+  const startTime = new Date(start.createdAt || start.timestamp);
+  const endTime = new Date(end.createdAt || end.timestamp);
+  const diffSec = Math.round((endTime - startTime) / 1000);
+  if (isNaN(diffSec) || diffSec < 0) return '0s';
+  const mins = Math.floor(diffSec / 60);
+  const secs = diffSec % 60;
+  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 };
 
 export default function CallLogViewer({ logs }) {
@@ -40,12 +59,18 @@ export default function CallLogViewer({ logs }) {
     );
   }
 
+  // Find start log
+  const startLog = logs.find(l => l.step === 'call_started' || l.step === 'simulation_started');
+
   return (
     <div className="space-y-0">
       {logs.map((log, i) => {
         const Icon = stepIcons[log.step] || Loader;
         const isLast = i === logs.length - 1;
         const isActive = isLast && ['queued', 'calling', 'in_progress', 'processing'].includes(log.step);
+
+        const isStart = log.step === 'call_started' || log.step === 'simulation_started';
+        const isComplete = log.step === 'call_completed' || log.step === 'session_completed' || log.step === 'session_ended' || log.step === 'session_escalated';
 
         return (
           <motion.div
@@ -70,17 +95,28 @@ export default function CallLogViewer({ logs }) {
             </div>
             <div className="pt-1 min-w-0 flex-1">
               <p className={classNames(
-                'text-sm',
-                isActive ? 'font-medium text-primary' : 'text-text-secondary'
+                'text-sm font-semibold',
+                isActive ? 'text-primary' : 'text-text-primary'
               )}>
                 {friendlySteps[log.step] || CALL_STEPS[log.step] || log.step}
               </p>
               {log.message && (
                 <p className="text-xs text-text-secondary mt-0.5">{log.message}</p>
               )}
-              {log.timestamp && (
-                <p className="text-[10px] text-text-tertiary mt-0.5">{formatDate(log.timestamp)}</p>
-              )}
+              
+              {/* Duration metadata info row */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[11px] text-text-tertiary font-medium">
+                {isStart && (
+                  <span>Started: {formatDate(log.createdAt || log.timestamp)}</span>
+                )}
+                {isComplete && (
+                  <>
+                    <span>Started: {startLog ? formatDate(startLog.createdAt || startLog.timestamp) : 'N/A'}</span>
+                    <span>Ended: {formatDate(log.createdAt || log.timestamp)}</span>
+                    <span>Duration: {calcDuration(startLog, log)}</span>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         );

@@ -1,16 +1,39 @@
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Headphones, LayoutDashboard, ClipboardList, PlusCircle, Settings, X } from 'lucide-react';
+import { 
+  Headphones, 
+  LayoutDashboard, 
+  ClipboardList, 
+  PlusCircle, 
+  Settings, 
+  X,
+  Users,
+  Phone,
+  BarChart3,
+  Bot
+} from 'lucide-react';
 import { classNames } from '../../utils/helpers';
 
 const iconMap = {
-  Headphones, LayoutDashboard, ClipboardList, PlusCircle, Settings,
+  Headphones, 
+  LayoutDashboard, 
+  ClipboardList, 
+  PlusCircle, 
+  Settings,
+  Users,
+  Phone,
+  BarChart3,
+  Bot
 };
 
 const items = [
   { label: 'Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
   { label: 'Orders', path: '/orders', icon: 'ClipboardList' },
   { label: 'Create Order', path: '/create-order', icon: 'PlusCircle' },
+  { label: 'Customers', path: '/customers', icon: 'Users' },
+  { label: 'Calls', path: '/calls', icon: 'Phone' },
+  { label: 'Analytics', path: '/analytics', icon: 'BarChart3' },
+  { label: 'AI Assistant', path: '/ai-assistant', icon: 'Bot' },
   { label: 'Settings', path: '/settings', icon: 'Settings' },
 ];
 
@@ -35,7 +58,7 @@ export default function Sidebar({ open, onClose }) {
             )}
           >
             <div className="flex items-center justify-between px-5 h-16 border-b border-white/5 shrink-0">
-              <div className="flex items-center gap-3">
+              <NavLink to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -44,7 +67,7 @@ export default function Sidebar({ open, onClose }) {
                   </svg>
                 </div>
                 <span className="font-semibold text-sm text-white">AI Voice Agent</span>
-              </div>
+              </NavLink>
               <button
                 onClick={onClose}
                 className="lg:hidden text-sidebar-text hover:text-white p-1 rounded-lg hover:bg-sidebar-hover transition-colors"

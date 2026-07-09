@@ -40,6 +40,71 @@ class OrderService:
         return db.query(Order).order_by(desc(Order.created_at)).all()
 
     @staticmethod
+    def get_paginated(
+        db: Session,
+        page: int = 1,
+        limit: int = 50,
+        search: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> tuple[list[Order], int]:
+        query = db.query(Order)
+        if status and status != "all":
+            from sqlalchemy import or_
+            from utils.status import OrderStatus
+            
+            # Map simplified business query keys to technical OrderStatus enums
+            status_map = {
+                "pending": [OrderStatus.PENDING, OrderStatus.QUEUED],
+                "in_progress": [OrderStatus.CALLING, OrderStatus.IN_PROGRESS, OrderStatus.PROCESSING, OrderStatus.SIMULATING, OrderStatus.ELEVENLABS_SESSION],
+                "confirmed": [OrderStatus.CONFIRMED, OrderStatus.COMPLETED],
+                "modified": [OrderStatus.MODIFIED],
+                "rejected": [OrderStatus.REJECTED],
+                "need_human": [OrderStatus.NEED_HUMAN]
+            }
+            
+            target_enums = status_map.get(status.lower())
+            if target_enums:
+                query = query.filter(Order.status.in_(target_enums))
+
+        if search:
+            search_pattern = f"%{search}%"
+            order_id_val = None
+            search_cleaned = search.strip().lower()
+            if search_cleaned.startswith("ord-"):
+                try:
+                    order_id_val = int(search_cleaned.split("-")[-1])
+                except ValueError:
+                    pass
+            else:
+                try:
+                    order_id_val = int(search_cleaned)
+                except ValueError:
+                    pass
+
+            from sqlalchemy import or_
+            if order_id_val is not None:
+                query = query.filter(
+                    or_(
+                        Order.id == order_id_val,
+                        Order.customer_name.like(search_pattern),
+                        Order.medicine_name.like(search_pattern),
+                        Order.phone_number.like(search_pattern)
+                    )
+                )
+            else:
+                query = query.filter(
+                    or_(
+                        Order.customer_name.like(search_pattern),
+                        Order.medicine_name.like(search_pattern),
+                        Order.phone_number.like(search_pattern)
+                    )
+                )
+        total = query.count()
+        offset = (page - 1) * limit
+        items = query.order_by(desc(Order.created_at)).offset(offset).limit(limit).all()
+        return items, total
+
+    @staticmethod
     def get_by_id(db: Session, order_id: int) -> Optional[Order]:
         return db.query(Order).filter(Order.id == order_id).first()
 

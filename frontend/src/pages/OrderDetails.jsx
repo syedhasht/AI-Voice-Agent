@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, User, Pill, Package, Clock, Edit3, Trash2, Save, X, Bot, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Phone, User, Pill, Package, Clock, Edit3, Trash2, Save, X, Bot, MessageSquare, Headphones, Tag } from 'lucide-react';
 import { Badge, Button, Card, Input, ConfirmDialog } from '../components/common';
 import { OrderTimeline, CallLogViewer, TranscriptViewer } from '../components/orders';
 import { PageTransition } from '../components/layout';
@@ -22,7 +22,7 @@ export default function OrderDetails() {
   const [deleting, setDeleting] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
-  const [showCallLogs, setShowCallLogs] = useState(false);
+
 
   const [form, setForm] = useState({ quantity: '', status: '', notes: '' });
   const prevStatusRef = useRef(null);
@@ -148,6 +148,7 @@ export default function OrderDetails() {
     { icon: Phone, label: 'Phone', value: order.phone },
     { icon: Pill, label: 'Medicine', value: order.medicine },
     { icon: Package, label: 'Quantity', value: order.quantity },
+    { icon: Tag, label: 'Order Amount', value: `Rs. ${(order.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
     { icon: Clock, label: 'Created', value: formatDate(order.createdAt) },
     ...(order.callDurationSeconds ? [{ icon: Clock, label: 'Call Duration', value: `${order.callDurationSeconds}s` }] : []),
   ];
@@ -222,7 +223,7 @@ export default function OrderDetails() {
                 </div>
               </div>
 
-              {isActive && !editing && (
+               {isActive && !editing && (
                 <div className="mb-4 p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-3">
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
@@ -237,6 +238,29 @@ export default function OrderDetails() {
                 </div>
               )}
 
+              {order.status === 'pending' && !editing && (
+                <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                      <Headphones size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-text-primary">Voice Call Simulation</h4>
+                      <p className="text-xs text-text-secondary mt-0.5">Start an interactive voice session for this order using the ElevenLabs agent.</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={Headphones}
+                    onClick={() => navigate(`/voice/${order.id}`)}
+                    className="w-full sm:w-auto shrink-0 shadow-lg shadow-primary/20"
+                  >
+                    Simulate Call
+                  </Button>
+                </div>
+              )}
+
               {editing ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -244,7 +268,12 @@ export default function OrderDetails() {
                     <div className="space-y-1.5">
                       <label className="block text-sm font-medium text-text-secondary">Status</label>
                       <select value={form.status} onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))} className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-                        {Object.entries(STATUS_LABELS).map(([key, label]) => (<option key={key} value={key}>{label}</option>))}
+                        <option value="pending">Pending Call</option>
+                        <option value="in_progress">In Call</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="modified">Modified</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="need_human">Need Human</option>
                       </select>
                     </div>
                   </div>
@@ -279,18 +308,11 @@ export default function OrderDetails() {
 
             {/* Call Logs Section */}
             <Card>
-              <button
-                onClick={() => setShowCallLogs(!showCallLogs)}
-                className="flex items-center justify-between w-full text-left"
-              >
+              <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
                 <h3 className="text-sm font-semibold text-text-primary">Call Logs</h3>
                 <span className="text-xs text-text-tertiary">{order.callLogs?.length || 0} entries</span>
-              </button>
-              {showCallLogs && (
-                <div className="mt-4 pt-4 border-t border-border">
-                  <CallLogViewer logs={order.callLogs} />
-                </div>
-              )}
+              </div>
+              <CallLogViewer logs={order.callLogs} />
             </Card>
 
             {/* Transcript Section */}

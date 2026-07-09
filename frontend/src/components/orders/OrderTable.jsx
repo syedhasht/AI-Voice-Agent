@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, PlusCircle, Phone, Loader, Headphones } from 'lucide-react';
-import { Badge, Button } from '../common';
+import { Badge, Button, HighlightText } from '../common';
 import { STATUS_LABELS, STATUS_COLORS } from '../../utils/constants';
 import { classNames, formatDate, isActiveStatus } from '../../utils/helpers';
 
-export default function OrderTable({ orders }) {
+export default function OrderTable({ orders, search }) {
   const navigate = useNavigate();
 
   if (orders.length === 0) {
@@ -36,9 +36,9 @@ export default function OrderTable({ orders }) {
               <th className="text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Phone</th>
               <th className="text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Medicine</th>
               <th className="text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Qty</th>
+              <th className="text-right text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Amount</th>
               <th className="text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Created</th>
               <th className="text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Status</th>
-              <th className="text-right text-xs font-semibold text-text-tertiary uppercase tracking-wider px-5 py-4">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -57,19 +57,32 @@ export default function OrderTable({ orders }) {
                   onClick={() => navigate(`/orders/${order.id}`)}
                 >
                   <td className="px-5 py-4">
-                    <span className="text-sm font-mono font-medium text-primary">{order.displayId}</span>
+                    <span className="text-sm font-mono font-medium text-primary">
+                      <HighlightText text={order.displayId} search={search} />
+                    </span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="text-sm font-medium text-text-primary">{order.customer}</span>
+                    <span className="text-sm font-medium text-text-primary">
+                      <HighlightText text={order.customer} search={search} />
+                    </span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="text-sm text-text-secondary">{order.phone}</span>
+                    <span className="text-sm text-text-secondary">
+                      <HighlightText text={order.phone} search={search} />
+                    </span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="text-sm text-text-primary">{order.medicine}</span>
+                    <span className="text-sm text-text-primary">
+                      <HighlightText text={order.medicine} search={search} />
+                    </span>
                   </td>
                   <td className="px-5 py-4 text-center">
                     <span className="text-sm font-medium text-text-primary">{order.quantity}</span>
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <span className="text-sm font-semibold text-text-primary">
+                      Rs. {(order.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
                   </td>
                   <td className="px-5 py-4">
                     <span className="text-sm text-text-secondary whitespace-nowrap">{formatDate(order.createdAt)}</span>
@@ -85,34 +98,6 @@ export default function OrderTable({ orders }) {
                       <Badge variant={STATUS_COLORS[order.status]} dot>
                         {STATUS_LABELS[order.status]}
                       </Badge>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      {order.status === 'pending' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={Headphones}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/voice/${order.id}`);
-                          }}
-                        >
-                          Simulate
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        icon={Eye}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/orders/${order.id}`);
-                        }}
-                      >
-                        View
-                      </Button>
                     </div>
                   </td>
                 </motion.tr>

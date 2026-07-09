@@ -20,9 +20,17 @@ def create_order(data: OrderCreate, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=OrderListResponse)
-def list_orders(db: Session = Depends(get_db)):
-    orders = OrderService.get_all(db)
-    return OrderListResponse(items=orders, total=len(orders))
+def list_orders(
+    page: int = 1,
+    limit: int = 50,
+    search: str = None,
+    status: str = None,
+    db: Session = Depends(get_db)
+):
+    orders, total = OrderService.get_paginated(
+        db, page=page, limit=limit, search=search, status=status
+    )
+    return OrderListResponse(items=orders, total=total)
 
 
 @router.get("/{order_id}", response_model=OrderResponse)

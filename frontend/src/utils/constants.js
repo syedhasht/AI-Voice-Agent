@@ -14,18 +14,18 @@ export const STATUS = {
 };
 
 export const STATUS_LABELS = {
-  [STATUS.PENDING]: 'Pending',
-  [STATUS.QUEUED]: 'Queued',
-  [STATUS.CALLING]: 'Calling',
-  [STATUS.IN_PROGRESS]: 'In Progress',
-  [STATUS.PROCESSING]: 'Processing',
+  [STATUS.PENDING]: 'Pending Call',
+  [STATUS.QUEUED]: 'Pending Call',
+  [STATUS.CALLING]: 'In Call',
+  [STATUS.IN_PROGRESS]: 'In Call',
+  [STATUS.PROCESSING]: 'In Call',
   [STATUS.CONFIRMED]: 'Confirmed',
   [STATUS.MODIFIED]: 'Modified',
   [STATUS.REJECTED]: 'Rejected',
   [STATUS.NEED_HUMAN]: 'Need Human',
-  [STATUS.SIMULATING]: 'Simulating',
-  [STATUS.ELEVENLABS_SESSION]: 'ElevenLabs Session',
-  [STATUS.COMPLETED]: 'Completed',
+  [STATUS.SIMULATING]: 'In Call',
+  [STATUS.ELEVENLABS_SESSION]: 'In Call',
+  [STATUS.COMPLETED]: 'Confirmed',
 };
 
 export const STATUS_COLORS = {

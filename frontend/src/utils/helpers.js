@@ -61,6 +61,7 @@ export function mapOrderFromApi(order) {
     quantity: order.quantity,
     status: order.status,
     notes: order.notes || '',
+    amount: order.amount || 0,
     createdAt: order.created_at,
     updatedAt: order.updated_at,
     retellCallId: order.retell_call_id || null,
@@ -76,6 +77,7 @@ export function mapOrderFromApi(order) {
       step: l.step,
       message: l.message || '',
       createdAt: l.created_at,
+      timestamp: l.created_at,
     })),
   };
 }

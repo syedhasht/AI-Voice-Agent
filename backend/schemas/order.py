@@ -58,6 +58,7 @@ class OrderResponse(BaseModel):
     medicine_name: str
     quantity: int
     status: OrderStatus
+    amount: float = 0.0
     notes: Optional[str] = None
     retell_call_id: Optional[str] = None
     transcript_json: Optional[str] = None
