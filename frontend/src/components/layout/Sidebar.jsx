@@ -10,7 +10,8 @@ import {
   Users,
   Phone,
   BarChart3,
-  Bot
+  Bot,
+  BookOpen
 } from 'lucide-react';
 import { classNames } from '../../utils/helpers';
 
@@ -23,7 +24,8 @@ const iconMap = {
   Users,
   Phone,
   BarChart3,
-  Bot
+  Bot,
+  BookOpen
 };
 
 const items = [
@@ -34,6 +36,7 @@ const items = [
   { label: 'Calls', path: '/calls', icon: 'Phone' },
   { label: 'Analytics', path: '/analytics', icon: 'BarChart3' },
   { label: 'AI Assistant', path: '/ai-assistant', icon: 'Bot' },
+  { label: 'RAG Assistant', path: '/rag-assistant', icon: 'BookOpen' },
   { label: 'Settings', path: '/settings', icon: 'Settings' },
 ];
 

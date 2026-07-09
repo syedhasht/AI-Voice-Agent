@@ -65,6 +65,10 @@ class Settings(BaseSettings):
     # ── Gemini (LLM for conversation intelligence) ───────────────────
     GEMINI_API_KEY: Optional[str] = None
 
+    # ── AI Assistant Settings (Gemini / Groq) ────────────────────────
+    AI_ASSISTANT_PROVIDER: str = "gemini"
+    GROQ_API_KEY: Optional[str] = None
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

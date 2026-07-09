@@ -57,6 +57,7 @@ class SeedService:
 
         # 2. Seed Customers (5,000)
         print("Seeding 5,000 Customers...")
+        used_phones = set()
         customers_data = []
         for i in range(5000):
             first = random.choice(FAKE_FIRST_NAMES)
@@ -64,10 +65,14 @@ class SeedService:
             name = f"{first} {last}"
             code = f"CUST-{100000 + i}"
             
-            # Generate realistic Pakistani mobile numbers like +923014605967
-            prefix = random.choice(["300", "301", "302", "312", "321", "333", "345"])
-            digits = "".join([str(random.randint(0, 9)) for _ in range(7)])
-            phone = f"+92{prefix}{digits}"
+            # Generate realistic Pakistani mobile numbers like +923014605967, ensuring uniqueness
+            while True:
+                prefix = random.choice(["300", "301", "302", "312", "321", "333", "345"])
+                digits = "".join([str(random.randint(0, 9)) for _ in range(7)])
+                phone = f"+92{prefix}{digits}"
+                if phone not in used_phones:
+                    used_phones.add(phone)
+                    break
             
             email = f"{first.lower()}{random.randint(100, 999)}.demo@test.com"
             address = f"House {random.randint(1, 500)}, Street {random.randint(1, 50)}, Fake Block"
@@ -84,6 +89,7 @@ class SeedService:
             )
 
             customers_data.append({
+                "id": i + 1,
                 "customer_code": code,
                 "full_name": name,
                 "phone_number": phone,

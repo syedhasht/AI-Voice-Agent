@@ -100,3 +100,14 @@ export async function queryAssistant(question) {
   return data;
 }
 
+/**
+ * Query the local RAG Assistant to retrieve relevant document chunks.
+ */
+export async function queryRAG(question) {
+  const { data } = await api.post(
+    '/rag/query',
+    { question }
+  );
+  return data;
+}
+

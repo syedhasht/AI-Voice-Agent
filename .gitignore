@@ -7,3 +7,8 @@ __pycache__/
 ngrok.zip
 .venv/
 venv/
+backend/orders.db
+backend/chroma_db/
+backend/scratch/
+backend/documents/
+

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { Layout } from './components/layout'
-import { Login, Dashboard, Orders, CreateOrder, OrderDetails, Settings, VoiceSession, Customers, Calls, Analytics, AIAssistant } from './pages'
+import { Login, Dashboard, Orders, CreateOrder, OrderDetails, Settings, VoiceSession, Customers, Calls, Analytics, AIAssistant, RAGAssistant } from './pages'
 
 export default function App() {
   return (
@@ -17,6 +17,7 @@ export default function App() {
           <Route path="/calls" element={<Calls />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/rag-assistant" element={<RAGAssistant />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/voice/:order_id" element={<VoiceSession />} />
         </Route>

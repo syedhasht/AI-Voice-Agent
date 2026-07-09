@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, User, Pill, Package, Clock, Edit3, Trash2, Save, X, Bot, MessageSquare, Headphones, Tag } from 'lucide-react';
+import { ArrowLeft, Phone, User, Pill, Package, Clock, Edit3, Trash2, Save, X, Bot, MessageSquare, Headphones, Tag, MapPin } from 'lucide-react';
 import { Badge, Button, Card, Input, ConfirmDialog } from '../components/common';
 import { OrderTimeline, CallLogViewer, TranscriptViewer } from '../components/orders';
 import { PageTransition } from '../components/layout';
@@ -145,7 +145,9 @@ export default function OrderDetails() {
 
   const infoItems = [
     { icon: User, label: 'Customer', value: order.customer },
+    ...(order.customerCode ? [{ icon: User, label: 'Customer ID', value: order.customerCode }] : []),
     { icon: Phone, label: 'Phone', value: order.phone },
+    ...(order.customerAddress ? [{ icon: MapPin, label: 'Address', value: order.customerAddress }] : []),
     { icon: Pill, label: 'Medicine', value: order.medicine },
     { icon: Package, label: 'Quantity', value: order.quantity },
     { icon: Tag, label: 'Order Amount', value: `Rs. ${(order.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },

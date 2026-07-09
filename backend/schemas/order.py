@@ -53,6 +53,9 @@ class CallLogResponse(BaseModel):
 
 class OrderResponse(BaseModel):
     id: int
+    customer_id: Optional[int] = None
+    customer_code: Optional[str] = None
+    customer_address: Optional[str] = None
     customer_name: str
     phone_number: str
     medicine_name: str

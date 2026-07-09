@@ -13,12 +13,47 @@ from utils.status import OrderStatus
 class OrderService:
     @staticmethod
     def create(db: Session, data: OrderCreate) -> Order:
+        from models.customer import Customer
+        from models.medicine import Medicine
+        from sqlalchemy import func
+
+        phone_cleaned = data.phone_number.strip()
+        customer_name_cleaned = data.customer_name.strip()
+        medicine_name_cleaned = data.medicine_name.strip()
+
+        # 1. Lookup or create customer
+        customer = db.query(Customer).filter(Customer.phone_number == phone_cleaned).first()
+        if not customer:
+            # Generate customer_code (CUST-100000 + max_id + 1)
+            max_id = db.query(func.max(Customer.id)).scalar() or 0
+            new_code = f"CUST-{100000 + max_id + 1}"
+            
+            customer = Customer(
+                id=max_id + 1,
+                customer_code=new_code,
+                full_name=customer_name_cleaned,
+                phone_number=phone_cleaned,
+                email=f"{customer_name_cleaned.lower().replace(' ', '')}{max_id + 1}@test.com",
+                city="Springfield",
+                province="Illinois Province",
+                gender="Other",
+                age=40
+            )
+            db.add(customer)
+            db.commit()
+            db.refresh(customer)
+
+        # 2. Lookup medicine by name (case-insensitive)
+        medicine = db.query(Medicine).filter(Medicine.name.ilike(medicine_name_cleaned)).first()
+
         order = Order(
-            customer_name=data.customer_name.strip(),
-            phone_number=data.phone_number.strip(),
-            medicine_name=data.medicine_name.strip(),
+            customer_name=customer_name_cleaned,
+            phone_number=phone_cleaned,
+            medicine_name=medicine_name_cleaned,
             quantity=data.quantity,
             notes=data.notes.strip() if data.notes else None,
+            customer_id=customer.id,
+            medicine_id=medicine.id if medicine else None
         )
         db.add(order)
         db.commit()

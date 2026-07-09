@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from config import get_settings
 from database.session import Base, engine
-from api.routes import orders_router, twilio_router, agent_tools_router, elevenlabs_webhook_router, dashboard_router, customers_router, calls_router, assistant_router
+from api.routes import orders_router, twilio_router, agent_tools_router, elevenlabs_webhook_router, dashboard_router, customers_router, calls_router, assistant_router, rag_router
 from api.routes.webhooks import router as webhooks_router
 from api.routes.demo_voice import router as demo_voice_router
 from utils.logger import get_logger
@@ -86,6 +86,7 @@ app.include_router(dashboard_router, prefix="/api")
 app.include_router(customers_router, prefix="/api")
 app.include_router(calls_router, prefix="/api")
 app.include_router(assistant_router, prefix="/api")
+app.include_router(rag_router, prefix="/api")
 
 
 @app.get("/health")

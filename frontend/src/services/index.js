@@ -18,5 +18,6 @@ export {
   voiceTurn,
   endSession,
   queryAssistant,
+  queryRAG,
 } from './api';
 

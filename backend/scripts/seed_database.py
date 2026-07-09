@@ -13,8 +13,11 @@ from main import _run_migrations
 def main():
     print("Initializing Database Seeding Script...")
     
-    # 1. Ensure all tables are created and manual migrations are applied
+    # 1. Ensure all tables are recreated with the correct new schemas
     print("Verifying database schema...")
+    print("Dropping old tables to update constraints...")
+    Base.metadata.drop_all(bind=engine)
+    print("Recreating database tables...")
     Base.metadata.create_all(bind=engine)
     _run_migrations()
     

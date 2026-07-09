@@ -352,7 +352,7 @@ function TypingIndicator() {
       </div>
       <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-surface-secondary border border-border flex items-center gap-1.5">
         <Loader2 size={14} className="text-violet-500 animate-spin" />
-        <span className="text-xs text-text-secondary">Gemini is thinking...</span>
+        <span className="text-xs text-text-secondary">LLM is thinking...</span>
         <span className="flex gap-0.5 ml-1">
           {[0, 1, 2].map(i => (
             <motion.span
@@ -434,7 +434,7 @@ export default function AIAssistant() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-text-primary">Enterprise AI Assistant</h1>
-            <p className="text-xs text-text-secondary">Natural Language → SQL → Business Insights · Powered by Gemini</p>
+            <p className="text-xs text-text-secondary">Natural Language → SQL → Business Insights · Powered by LLM</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-semibold">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

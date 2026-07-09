@@ -55,6 +55,9 @@ export function mapOrderFromApi(order) {
   return {
     id: order.id,
     displayId: `ORD-${String(order.id).padStart(3, '0')}`,
+    customerId: order.customer_id,
+    customerCode: order.customer_code,
+    customerAddress: order.customer_address,
     customer: order.customer_name,
     phone: order.phone_number,
     medicine: order.medicine_name,

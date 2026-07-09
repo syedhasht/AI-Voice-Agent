@@ -124,9 +124,26 @@ def process_question(question: str) -> Dict[str, Any]:
 
     # ── Step 3a: SQL generation error ─────────────────────────────────
     if gen_result.get("error"):
+        err_msg = gen_result["error"]
+        if "cannot be answered from the available database schema" in err_msg:
+            logger.info("Unsupported question — falling back to conversational explanation")
+            try:
+                conversational_reply = generate_conversational_response(question)
+                return {
+                    "question": question,
+                    "generated_sql": None,
+                    "columns": [],
+                    "rows": [],
+                    "summary": conversational_reply,
+                    "chart": {"type": "none", "x_key": None, "y_key": None, "data": []},
+                    "is_error": False,
+                }
+            except Exception as exc:
+                logger.warning("Conversational fallback generation failed: %s", exc)
+
         return _build_error_response(
             question=question,
-            error_message=gen_result["error"],
+            error_message=err_msg,
         )
 
     sql = gen_result["sql"]

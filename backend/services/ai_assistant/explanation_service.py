@@ -26,6 +26,8 @@ GEMINI_API_URL = (
 _GREETING_PROMPT = """You are an Enterprise AI Business Assistant for a pharmaceutical order management system.
 The user sent a conversational message. Respond in a friendly, professional way.
 
+IMPORTANT: Do NOT mention the name "Gemini" or "Google". Refer to yourself as the Enterprise AI Business Assistant powered by the LLM.
+
 You can help users answer business questions like:
 - Which medicine has the highest cancellation rate?
 - Which customers need a callback?
@@ -40,6 +42,8 @@ User message: {question}
 Response:"""
 
 _EXPLANATION_PROMPT = """You are an Enterprise AI Business Analyst for a pharmaceutical company.
+
+IMPORTANT: Do NOT mention "Gemini" or "Google" in your summary. Refer to the model/system as the LLM.
 
 A user asked a business question and the database returned the following results.
 Provide a clear, professional business insight summary in 2-4 sentences.
@@ -61,49 +65,96 @@ Business Insight:"""
 
 
 def _call_gemini(prompt: str) -> Optional[str]:
-    """Call Gemini API using the existing httpx REST pattern."""
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
-        return None
+    """Call the configured LLM API (Gemini or Groq) using the existing httpx REST pattern."""
+    provider = getattr(settings, "AI_ASSISTANT_PROVIDER", "gemini").lower()
 
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
+    if provider == "groq":
+        api_key = settings.GROQ_API_KEY
+        if not api_key:
+            logger.error("GROQ_API_KEY is not configured")
+            return None
+
+        payload = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
             "temperature": 0.4,
-            "maxOutputTokens": 512,
-        },
-    }
+            "max_tokens": 512
+        }
 
-    try:
-        with httpx.Client(timeout=8.0) as client:
-            response = client.post(
-                f"{GEMINI_API_URL}?key={api_key}",
-                json=payload,
-                headers={"Content-Type": "application/json"},
-            )
-
-        if response.status_code == 200:
-            data = response.json()
-            candidates = data.get("candidates", [])
-            if candidates:
-                return (
-                    candidates[0]
-                    .get("content", {})
-                    .get("parts", [{}])[0]
-                    .get("text", "")
-                    .strip()
+        try:
+            with httpx.Client(timeout=8.0) as client:
+                response = client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    json=payload,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json"
+                    }
                 )
-        elif response.status_code == 429:
-            logger.warning("Gemini explanation rate limit (429)")
-        else:
-            logger.error(
-                "Gemini explanation error — status=%s", response.status_code
-            )
-        return None
 
-    except (httpx.TimeoutException, httpx.RequestError) as exc:
-        logger.error("Gemini explanation request failed — %s", exc)
-        return None
+            if response.status_code == 200:
+                data = response.json()
+                return data["choices"][0]["message"]["content"].strip()
+            elif response.status_code == 429:
+                logger.warning("Groq explanation rate limit (429) — quota exceeded")
+            else:
+                logger.error(
+                    "Groq explanation error — status=%s body=%s",
+                    response.status_code,
+                    response.text[:300]
+                )
+            return None
+
+        except (httpx.TimeoutException, httpx.RequestError) as exc:
+            logger.error("Groq explanation request failed — %s", exc)
+            return None
+
+    else:
+        # Default: Gemini API
+        api_key = settings.GEMINI_API_KEY
+        if not api_key:
+            return None
+
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.4,
+                "maxOutputTokens": 512,
+            },
+        }
+
+        try:
+            with httpx.Client(timeout=8.0) as client:
+                response = client.post(
+                    f"{GEMINI_API_URL}?key={api_key}",
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                )
+
+            if response.status_code == 200:
+                data = response.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    return (
+                        candidates[0]
+                        .get("content", {})
+                        .get("parts", [{}])[0]
+                        .get("text", "")
+                        .strip()
+                    )
+            elif response.status_code == 429:
+                logger.warning("Gemini explanation rate limit (429)")
+            else:
+                logger.error(
+                    "Gemini explanation error — status=%s", response.status_code
+                )
+            return None
+
+        except (httpx.TimeoutException, httpx.RequestError) as exc:
+            logger.error("Gemini explanation request failed — %s", exc)
+            return None
 
 
 def generate_conversational_response(question: str) -> str:

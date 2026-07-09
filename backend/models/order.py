@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, ForeignKey
@@ -46,6 +47,25 @@ class Order(Base):
         if self.medicine:
             return round(self.quantity * self.medicine.unit_price, 2)
         return round(self.quantity * 10.0, 2)
+
+    @property
+    def customer_code(self) -> Optional[str]:
+        if self.customer:
+            return self.customer.customer_code
+        return None
+
+    @property
+    def customer_address(self) -> Optional[str]:
+        if self.customer:
+            parts = []
+            if self.customer.address:
+                parts.append(self.customer.address.strip())
+            if self.customer.city:
+                parts.append(self.customer.city.strip())
+            if self.customer.province:
+                parts.append(self.customer.province.strip())
+            return ", ".join(parts) if parts else None
+        return None
 
     timeline = relationship(
         "TimelineEntry",

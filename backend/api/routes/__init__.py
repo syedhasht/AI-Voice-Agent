@@ -6,6 +6,7 @@ from .dashboard import router as dashboard_router
 from .customers_routes import router as customers_router
 from .calls_routes import router as calls_router
 from .assistant_routes import router as assistant_router
+from .rag_routes import router as rag_router
 
 __all__ = [
     "orders_router",
@@ -16,4 +17,5 @@ __all__ = [
     "customers_router",
     "calls_router",
     "assistant_router",
+    "rag_router",
 ]
