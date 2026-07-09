@@ -10,7 +10,6 @@ venv/
 backend/orders.db
 backend/chroma_db/
 backend/scratch/
-backend/documents/
 backend/logs.txt*
 
 
