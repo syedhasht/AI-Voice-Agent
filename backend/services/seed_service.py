@@ -374,3 +374,18 @@ class SeedService:
             db.commit()
 
         print("Database Seeding Completed Successfully!")
+
+
+def run_seed() -> None:
+    """Seed the database only if it is empty. Safe to call on every startup."""
+    from database.session import SessionLocal
+    db = SessionLocal()
+    try:
+        count = db.query(Customer).count()
+        if count == 0:
+            print("Empty database detected — running seeder...")
+            SeedService.seed_all(db)
+        else:
+            print(f"Database already has {count} customers — skipping seed.")
+    finally:
+        db.close()

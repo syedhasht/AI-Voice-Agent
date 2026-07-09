@@ -11,6 +11,7 @@ from api.routes.webhooks import router as webhooks_router
 from api.routes.demo_voice import router as demo_voice_router
 from utils.logger import get_logger
 from sqlalchemy import inspect, text
+from services.seed_service import run_seed
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -43,6 +44,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     _run_migrations()
     logger.info("Database tables created / verified")
+    run_seed()
     yield
     logger.info("Shutting down %s", settings.APP_NAME)
 
