@@ -1,8 +1,8 @@
 import api from './client';
 import { mapOrderFromApi, mapOrderToApi } from '../utils/helpers';
 
-export async function fetchOrders() {
-  const { data } = await api.get('/orders');
+export async function fetchOrders(params = {}) {
+  const { data } = await api.get('/orders', { params });
   return data.items.map(mapOrderFromApi);
 }
 
@@ -106,7 +106,8 @@ export async function queryAssistant(question) {
 export async function queryRAG(question) {
   const { data } = await api.post(
     '/rag/query',
-    { question }
+    { question },
+    { timeout: 90000 }
   );
   return data;
 }

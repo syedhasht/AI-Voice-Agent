@@ -16,6 +16,7 @@ error responses — never as unhandled exceptions.
 
 from typing import Any, Dict, List, Optional
 
+from config import get_settings
 from utils.logger import get_logger
 
 from .chart_selector import select_chart
@@ -28,6 +29,7 @@ from .sql_generator import generate_sql
 from .sql_validator import validate_sql
 
 logger = get_logger(__name__)
+settings = get_settings()
 
 
 def _build_error_response(
@@ -83,8 +85,9 @@ def process_question(question: str) -> Dict[str, Any]:
     from .sql_generator import _is_conversational  # local import avoids circular
     if _is_conversational(question):
         logger.info("Conversational question — returning instant reply")
+        provider_name = "Groq" if getattr(settings, "AI_ASSISTANT_PROVIDER", "gemini").lower() == "groq" else "Gemini"
         response_text = (
-            "Hi! I'm your Enterprise AI Business Assistant — powered by Gemini.\n"
+            f"Hi! I'm your Enterprise AI Business Assistant — powered by {provider_name}.\n"
             "Ask me anything about your pharmacy data and I'll query the live database for you.\n\n"
             "• Which medicine has the highest cancellation rate?\n"
             "• Show revenue by city\n"

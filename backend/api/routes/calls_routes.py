@@ -10,14 +10,15 @@ router = APIRouter(prefix="/calls", tags=["Calls"])
 @router.get("")
 def list_calls(
     page: int = Query(1, ge=1),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=5000),
     outcome: str = Query(None),
     sentiment: str = Query(None),
     search: str = Query(None),
     date: str = Query(None),
     db: Session = Depends(get_db)
 ):
-    query_obj = db.query(Call).join(Customer, Call.customer_id == Customer.id)
+    from sqlalchemy.orm import joinedload
+    query_obj = db.query(Call).options(joinedload(Call.customer)).join(Customer, Call.customer_id == Customer.id)
 
     if outcome and outcome != "all":
         query_obj = query_obj.filter(Call.outcome == outcome)

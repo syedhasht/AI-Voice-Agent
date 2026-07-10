@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 
 from database.session import Base
@@ -16,6 +16,8 @@ class Order(Base):
     phone_number = Column(String(50), nullable=False)
     medicine_name = Column(String(255), nullable=False)
     quantity = Column(Integer, nullable=False)
+    unit_price = Column(Float, nullable=True)        # price per unit at time of order
+    total_price = Column(Float, nullable=True)       # quantity * unit_price, stored at order time
     status = Column(
         Enum(OrderStatus),
         default=OrderStatus.PENDING,
@@ -44,6 +46,9 @@ class Order(Base):
 
     @property
     def amount(self) -> float:
+        """Return stored total_price, falling back to live calculation."""
+        if self.total_price is not None:
+            return self.total_price
         if self.medicine:
             return round(self.quantity * self.medicine.unit_price, 2)
         return round(self.quantity * 10.0, 2)

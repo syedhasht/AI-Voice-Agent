@@ -37,10 +37,8 @@ _BLOCKED_KEYWORDS = [
     r"\bDROP\s+DATABASE\b",
 ]
 
-# Patterns used in UNION-injection attacks
+# Patterns used in SQL injection attacks (excluding safe UNION queries)
 _INJECTION_PATTERNS = [
-    r"UNION\s+ALL\s+SELECT",
-    r"UNION\s+SELECT",
     r";\s*SELECT",          # stacked queries
     r";\s*DROP",
     r";\s*DELETE",

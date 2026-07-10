@@ -3,25 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { motion as framerMotion } from 'framer-motion';
 import { PageTransition } from '../components/layout';
 import { Card, Button, Badge } from '../components/common';
-import { 
-  fetchDashboardSummary, 
-  fetchRecentOrders, 
-  fetchRecentCalls 
+import {
+  fetchDashboardSummary,
+  fetchRecentOrders,
+  fetchRecentCalls
 } from '../services';
-import { 
-  Users, 
-  ClipboardList, 
-  Phone, 
-  CheckCircle, 
-  XCircle, 
-  Headphones, 
-  Clock, 
-  DollarSign, 
-  Pill, 
-  ChevronRight, 
-  PlusCircle, 
-  Settings, 
-  BarChart3 
+import {
+  Users,
+  ClipboardList,
+  Phone,
+  CheckCircle,
+  XCircle,
+  Headphones,
+  Clock,
+  DollarSign,
+  Pill,
+  ChevronRight,
+  PlusCircle,
+  Settings,
+  BarChart3
 } from 'lucide-react';
 import { formatDate } from '../utils/helpers';
 import { STATUS_LABELS } from '../utils/constants';
@@ -32,7 +32,7 @@ const iconMap = {
   calls_today: Phone,
   confirmation_rate: CheckCircle,
   cancellation_rate: XCircle,
-  human_escalations: Headphones,
+  need_human_count: Headphones,
   average_call_duration: Clock,
   revenue: DollarSign,
   total_medicines: Pill
@@ -44,7 +44,7 @@ const colorMap = {
   calls_today: 'bg-sky-500/10 text-sky-500 border-sky-500/20',
   confirmation_rate: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   cancellation_rate: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-  human_escalations: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  need_human_count: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   average_call_duration: 'bg-violet-500/10 text-violet-500 border-violet-500/20',
   revenue: 'bg-teal-500/10 text-teal-500 border-teal-500/20',
   total_medicines: 'bg-fuchsia-500/10 text-fuchsia-500 border-fuchsia-500/20'
@@ -56,7 +56,7 @@ const pathMap = {
   calls_today: '/calls',
   confirmation_rate: '/analytics#outcomes-chart',
   cancellation_rate: '/analytics#outcomes-chart',
-  human_escalations: '/analytics#outcomes-chart',
+  need_human_count: '/need-human',
   average_call_duration: '/calls',
   revenue: '/analytics#revenue-chart',
   total_medicines: '/orders'
@@ -114,7 +114,7 @@ export default function Dashboard() {
     { key: 'calls_today', label: 'Calls Today', value: summary?.calls_today.toLocaleString() || '0' },
     { key: 'confirmation_rate', label: 'Confirmation Rate', value: `${summary?.confirmation_rate || 0}%` },
     { key: 'cancellation_rate', label: 'Cancellation Rate', value: `${summary?.cancellation_rate || 0}%` },
-    { key: 'human_escalations', label: 'Human Escalations', value: `${summary?.human_escalations || 0}%` },
+    { key: 'need_human_count', label: 'Escalated Calls', value: summary?.need_human_count?.toLocaleString() || '0' },
     { key: 'average_call_duration', label: 'Avg. Duration', value: `${summary?.average_call_duration || 0}s` },
     { key: 'revenue', label: 'Revenue', value: `Rs. ${summary?.revenue.toLocaleString() || '0'}` },
     { key: 'total_medicines', label: 'Total Medicines', value: summary?.total_medicines.toLocaleString() || '0' }
@@ -197,7 +197,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center gap-3">
               <Users size={20} />
-              <span>AI Agent Playground</span>
+              <span>AI Agent</span>
             </div>
             <ChevronRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
           </button>
@@ -212,10 +212,10 @@ export default function Dashboard() {
                 <h2 className="text-base font-bold text-text-primary">Recent Orders</h2>
                 <p className="text-xs text-text-secondary mt-0.5">Top 10 most recent orders in queue</p>
               </div>
-              <Button 
-                onClick={() => navigate('/orders')} 
-                variant="outline" 
-                size="sm" 
+              <Button
+                onClick={() => navigate('/orders')}
+                variant="outline"
+                size="sm"
                 className="text-xs flex items-center gap-1"
               >
                 <span>View All</span>
@@ -242,11 +242,11 @@ export default function Dashboard() {
                       <td className="py-3 px-3 text-text-secondary">{o.medicine}</td>
                       <td className="py-3 px-3 text-center text-text-secondary">{o.quantity}</td>
                       <td className="py-3 px-3">
-                        <Badge 
+                        <Badge
                           type={
-                            o.status === 'completed' || o.status === 'confirmed' ? 'success' : 
-                            o.status === 'rejected' ? 'danger' : 
-                            o.status === 'need_human' ? 'warning' : 'neutral'
+                            o.status === 'completed' || o.status === 'confirmed' ? 'success' :
+                              o.status === 'rejected' ? 'danger' :
+                                o.status === 'need_human' ? 'warning' : 'neutral'
                           }
                           className="text-xs font-semibold"
                         >
@@ -273,10 +273,10 @@ export default function Dashboard() {
                 <h2 className="text-base font-bold text-text-primary">Recent Calls</h2>
                 <p className="text-xs text-text-secondary mt-0.5">Top 10 voice agent call logs</p>
               </div>
-              <Button 
-                onClick={() => navigate('/calls')} 
-                variant="outline" 
-                size="sm" 
+              <Button
+                onClick={() => navigate('/calls')}
+                variant="outline"
+                size="sm"
                 className="text-xs flex items-center gap-1"
               >
                 <span>View All</span>
@@ -304,11 +304,11 @@ export default function Dashboard() {
                       <td className="py-3 px-3 font-semibold text-text-primary truncate max-w-[120px]">{c.customer}</td>
                       <td className="py-3 px-3 text-center text-text-secondary">{c.duration}s</td>
                       <td className="py-3 px-3">
-                        <Badge 
+                        <Badge
                           type={
-                            c.outcome === 'completed' || c.outcome === 'confirmed' ? 'success' : 
-                            c.outcome === 'rejected' ? 'danger' : 
-                            c.outcome === 'need_human' ? 'warning' : 'neutral'
+                            c.outcome === 'completed' || c.outcome === 'confirmed' ? 'success' :
+                              c.outcome === 'rejected' ? 'danger' :
+                                c.outcome === 'need_human' ? 'warning' : 'neutral'
                           }
                           className="text-xs font-semibold"
                         >
@@ -316,11 +316,10 @@ export default function Dashboard() {
                         </Badge>
                       </td>
                       <td className="py-3 px-3">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          c.sentiment === 'Positive' ? 'bg-emerald-500/10 text-emerald-500' :
-                          c.sentiment === 'Negative' ? 'bg-rose-500/10 text-rose-500' :
-                          'bg-surface-secondary text-text-secondary'
-                        }`}>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${c.sentiment === 'Positive' ? 'bg-emerald-500/10 text-emerald-500' :
+                            c.sentiment === 'Negative' ? 'bg-rose-500/10 text-rose-500' :
+                              'bg-surface-secondary text-text-secondary'
+                          }`}>
                           {c.sentiment}
                         </span>
                       </td>

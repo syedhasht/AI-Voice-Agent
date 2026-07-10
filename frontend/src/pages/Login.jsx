@@ -16,16 +16,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'linear-gradient(145deg, #ecfeff 0%, #f0fafb 40%, #cffafe 100%)' }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
         className="w-full max-w-md"
       >
-        <div className="card p-8 sm:p-10">
+        <div className="card p-8 sm:p-10" style={{ boxShadow: '0 8px 40px rgba(8,145,178,0.15), 0 2px 8px rgba(8,145,178,0.08)' }}>
           <div className="text-center mb-8">
-            <div className="inline-flex w-14 h-14 rounded-2xl bg-primary items-center justify-center mb-5">
+            <div className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-5"
+              style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 60%, #0e7490 100%)', boxShadow: '0 6px 20px rgba(8,145,178,0.40)' }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5" />

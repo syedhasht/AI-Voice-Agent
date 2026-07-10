@@ -18,8 +18,10 @@ def get_summary(db: Session = Depends(get_db)):
     total_medicines = db.query(Medicine).count()
 
     # 2. Calls today (started_at equals today's date in local server time)
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    calls_today = db.query(Call).filter(text("date(started_at) = :today")).params(today=today_str).count()
+    local_today = datetime.now()
+    start_of_today = datetime(local_today.year, local_today.month, local_today.day, 0, 0, 0)
+    end_of_today = datetime(local_today.year, local_today.month, local_today.day, 23, 59, 59)
+    calls_today = db.query(Call).filter(Call.started_at >= start_of_today, Call.started_at <= end_of_today).count()
 
     # 3. Order statuses aggregates
     orders_by_status = db.query(Order.status, text("count(*)")).group_by(Order.status).all()
@@ -27,14 +29,21 @@ def get_summary(db: Session = Depends(get_db)):
 
     completed_count = status_counts.get("completed", 0)
     rejected_count = status_counts.get("rejected", 0)
-    need_human_count = status_counts.get("need_human", 0)
+    
+    # Count of calls needing human agent (Escalated Calls)
+    need_human_count = db.query(Call).filter(Call.outcome == "need_human").count()
+
+    total_calls = db.query(Call).count()
+    if total_calls > 0:
+        human_escalations = round((need_human_count / total_calls) * 100, 1)
+    else:
+        human_escalations = 0.0
 
     if total_orders > 0:
         confirmation_rate = round((completed_count / total_orders) * 100, 1)
         cancellation_rate = round((rejected_count / total_orders) * 100, 1)
-        human_escalations = round((need_human_count / total_orders) * 100, 1)
     else:
-        confirmation_rate = cancellation_rate = human_escalations = 0.0
+        confirmation_rate = cancellation_rate = 0.0
 
     # 4. Average call duration
     avg_duration_res = db.query(text("avg(duration_seconds)")).select_from(Call).scalar()
@@ -57,7 +66,8 @@ def get_summary(db: Session = Depends(get_db)):
         "cancellation_rate": cancellation_rate,
         "human_escalations": human_escalations,
         "average_call_duration": avg_duration,
-        "revenue": revenue
+        "revenue": revenue,
+        "need_human_count": need_human_count
     }
 
 
@@ -67,28 +77,52 @@ def get_charts(db: Session = Depends(get_db)):
     def run_sql(query: str, params=None):
         return db.execute(text(query), params or {}).mappings().all()
 
-    # 1. Calls per Day (last 30 days, ordered chronological)
-    calls_res = run_sql(
-        "SELECT date(started_at) as date, count(*) as count FROM calls GROUP BY date ORDER BY date DESC LIMIT 30"
-    )
-    calls_per_day = [{"date": r["date"], "count": r["count"]} for r in reversed(calls_res)]
+    is_pg = db.bind.dialect.name == "postgresql"
 
-    # 2. Orders per Day (last 30 days)
-    orders_res = run_sql(
-        "SELECT date(created_at) as date, count(*) as count FROM orders GROUP BY date ORDER BY date DESC LIMIT 30"
-    )
-    orders_per_day = [{"date": r["date"], "count": r["count"]} for r in reversed(orders_res)]
+    # Define dialect-specific queries
+    if is_pg:
+        calls_query = "SELECT started_at::date as date, count(*) as count FROM calls GROUP BY started_at::date ORDER BY date DESC LIMIT 30"
+        orders_query = "SELECT created_at::date as date, count(*) as count FROM orders GROUP BY created_at::date ORDER BY date DESC LIMIT 30"
+        confirmations_query = "SELECT created_at::date as date, count(*) as count FROM orders WHERE status = 'COMPLETED' GROUP BY created_at::date ORDER BY date DESC LIMIT 30"
+        revenue_query = (
+            "SELECT o.created_at::date as date, sum(o.quantity * m.unit_price) as amount "
+            "FROM orders o JOIN medicines m ON o.medicine_id = m.id "
+            "WHERE o.status = 'COMPLETED' GROUP BY o.created_at::date ORDER BY date DESC LIMIT 30"
+        )
+        hour_query = "SELECT to_char(started_at, 'HH24') as hour, count(*) as count FROM calls GROUP BY hour ORDER BY hour ASC"
+        growth_query = "SELECT created_at::date as date, count(*) as count FROM customers GROUP BY created_at::date ORDER BY date DESC LIMIT 30"
+    else:
+        calls_query = "SELECT date(started_at) as date, count(*) as count FROM calls GROUP BY date ORDER BY date DESC LIMIT 30"
+        orders_query = "SELECT date(created_at) as date, count(*) as count FROM orders GROUP BY date ORDER BY date DESC LIMIT 30"
+        confirmations_query = "SELECT date(created_at) as date, count(*) as count FROM orders WHERE status = 'COMPLETED' GROUP BY date ORDER BY date DESC LIMIT 30"
+        revenue_query = (
+            "SELECT date(o.created_at) as date, sum(o.quantity * m.unit_price) as amount "
+            "FROM orders o JOIN medicines m ON o.medicine_id = m.id "
+            "WHERE o.status = 'COMPLETED' GROUP BY date ORDER BY date DESC LIMIT 30"
+        )
+        hour_query = "SELECT strftime('%H', started_at) as hour, count(*) as count FROM calls GROUP BY hour ORDER BY hour ASC"
+        growth_query = "SELECT date(created_at) as date, count(*) as count FROM customers GROUP BY date ORDER BY date DESC LIMIT 30"
 
-    # 3. Confirmations per Day (last 30 days)
-    confirmations_res = run_sql(
-        "SELECT date(created_at) as date, count(*) as count FROM orders WHERE status = 'COMPLETED' GROUP BY date ORDER BY date DESC LIMIT 30"
-    )
-    confirmations_per_day = [{"date": r["date"], "count": r["count"]} for r in reversed(confirmations_res)]
+    # Helper to convert date to string safely
+    def clean_date(val):
+        if val is None:
+            return ""
+        return val.isoformat() if hasattr(val, "isoformat") else str(val)
+
+    # 1. Calls per Day
+    calls_res = run_sql(calls_query)
+    calls_per_day = [{"date": clean_date(r["date"]), "count": r["count"]} for r in reversed(calls_res)]
+
+    # 2. Orders per Day
+    orders_res = run_sql(orders_query)
+    orders_per_day = [{"date": clean_date(r["date"]), "count": r["count"]} for r in reversed(orders_res)]
+
+    # 3. Confirmations per Day
+    confirmations_res = run_sql(confirmations_query)
+    confirmations_per_day = [{"date": clean_date(r["date"]), "count": r["count"]} for r in reversed(confirmations_res)]
 
     # 4. Order Outcomes
-    outcomes_res = run_sql(
-        "SELECT status, count(*) as count FROM orders GROUP BY status"
-    )
+    outcomes_res = run_sql("SELECT status, count(*) as count FROM orders GROUP BY status")
     simplified_mapping = {
         "pending": "Pending Call",
         "queued": "Pending Call",
@@ -117,19 +151,13 @@ def get_charts(db: Session = Depends(get_db)):
     )
     medicine_popularity = [{"name": r["medicine_name"], "count": r["count"]} for r in med_res]
 
-    # 6. Revenue Trend (last 30 days)
-    rev_res = run_sql(
-        "SELECT date(o.created_at) as date, sum(o.quantity * m.unit_price) as amount "
-        "FROM orders o JOIN medicines m ON o.medicine_id = m.id "
-        "WHERE o.status = 'COMPLETED' GROUP BY date ORDER BY date DESC LIMIT 30"
-    )
-    revenue_trend = [{"date": r["date"], "amount": round(r["amount"] or 0.0, 2)} for r in reversed(rev_res)]
+    # 6. Revenue Trend
+    rev_res = run_sql(revenue_query)
+    revenue_trend = [{"date": clean_date(r["date"]), "amount": round(r["amount"] or 0.0, 2)} for r in reversed(rev_res)]
 
     # 7. Calls by Hour
-    hour_res = run_sql(
-        "SELECT strftime('%H', started_at) as hour, count(*) as count FROM calls GROUP BY hour ORDER BY hour ASC"
-    )
-    calls_by_hour = [{"hour": f"{r['hour']}:00", "count": r["count"]} for r in hour_res]
+    hour_res = run_sql(hour_query)
+    calls_by_hour = [{"hour": f"{int(r['hour'])}:00" if r['hour'] is not None and str(r['hour']).strip().isdigit() else f"{r['hour']}:00", "count": r["count"]} for r in hour_res]
 
     # 8. Top Cities
     cities_res = run_sql(
@@ -137,11 +165,9 @@ def get_charts(db: Session = Depends(get_db)):
     )
     top_cities = [{"city": r["city"], "count": r["count"]} for r in cities_res]
 
-    # 9. Customer Growth (signup count per day)
-    growth_res = run_sql(
-        "SELECT date(created_at) as date, count(*) as count FROM customers GROUP BY date ORDER BY date DESC LIMIT 30"
-    )
-    customer_growth = [{"date": r["date"], "count": r["count"]} for r in reversed(growth_res)]
+    # 9. Customer Growth
+    growth_res = run_sql(growth_query)
+    customer_growth = [{"date": clean_date(r["date"]), "count": r["count"]} for r in reversed(growth_res)]
 
     return {
         "calls_per_day": calls_per_day,

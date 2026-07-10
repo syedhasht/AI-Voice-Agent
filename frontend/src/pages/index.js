@@ -10,4 +10,4 @@ export { default as Calls } from './Calls';
 export { default as Analytics } from './Analytics';
 export { default as AIAssistant } from './AIAssistant';
 export { default as RAGAssistant } from './RAGAssistant';
-
+export { default as NeedHuman } from './NeedHuman';

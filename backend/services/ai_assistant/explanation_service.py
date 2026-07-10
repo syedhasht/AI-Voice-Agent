@@ -41,9 +41,13 @@ User message: {question}
 
 Response:"""
 
-_EXPLANATION_PROMPT = """You are an Enterprise AI Business Analyst for a pharmaceutical company.
+_EXPLANATION_PROMPT = """You are an Enterprise AI Business Analyst for a pharmaceutical company based in Pakistan.
 
 IMPORTANT: Do NOT mention "Gemini" or "Google" in your summary. Refer to the model/system as the LLM.
+
+CRITICAL CURRENCY RULE: This business operates exclusively in Pakistani Rupees (Rs.). 
+ALWAYS use "Rs." as the currency symbol. NEVER use "$", "dollar", "USD", or any other currency.
+For example: write "Rs. 1,250" NOT "$1,250" or "1250 dollars".
 
 A user asked a business question and the database returned the following results.
 Provide a clear, professional business insight summary in 2-4 sentences.
@@ -237,7 +241,7 @@ def generate_explanation(
         if val is None:
             parts.append(f"no data found for {col.replace('_', ' ')}")
         elif isinstance(val, float):
-            parts.append(f"{col.replace('_', ' ')}: {val:,.2f}")
+            parts.append(f"{col.replace('_', ' ')}: Rs. {val:,.2f}")
         elif isinstance(val, int):
             parts.append(f"{col.replace('_', ' ')}: {val:,}")
         else:

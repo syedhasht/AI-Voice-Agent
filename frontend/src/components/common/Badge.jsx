@@ -1,23 +1,23 @@
 import { classNames } from '../../utils/helpers';
 
 const colorClasses = {
-  emerald: 'bg-emerald/10 text-emerald-dark',
-  blue: 'bg-primary/10 text-primary-dark',
-  amber: 'bg-amber/10 text-amber-dark',
-  red: 'bg-red-accent/10 text-red-dark',
-  purple: 'bg-purple-500/10 text-purple-700',
-  orange: 'bg-orange-500/10 text-orange-700',
-  gray: 'bg-surface-tertiary text-text-secondary',
+  emerald: 'bg-[#dcfce7] text-[#15803d] border border-[#86efac]',
+  blue:    'bg-[#cffafe] text-[#0e7490] border border-[#67e8f9]',
+  amber:   'bg-[#fef3c7] text-[#92400e] border border-[#fcd34d]',
+  red:     'bg-[#ffe4e6] text-[#be123c] border border-[#fda4af]',
+  purple:  'bg-[#f3e8ff] text-[#7e22ce] border border-[#d8b4fe]',
+  orange:  'bg-[#ffedd5] text-[#c2410c] border border-[#fdba74]',
+  gray:    'bg-[#f0fafb] text-[#3a5566] border border-[#b2e0ea]',
 };
 
 const dotColors = {
-  emerald: 'bg-emerald',
-  blue: 'bg-primary',
-  amber: 'bg-amber',
-  red: 'bg-red-accent',
-  purple: 'bg-purple-500',
-  orange: 'bg-orange-500',
-  gray: 'bg-text-tertiary',
+  emerald: 'bg-[#22c55e]',
+  blue:    'bg-[#0891b2]',
+  amber:   'bg-[#f59e0b]',
+  red:     'bg-[#f43f5e]',
+  purple:  'bg-[#a855f7]',
+  orange:  'bg-[#f97316]',
+  gray:    'bg-[#90aab8]',
 };
 
 export default function Badge({ children, variant = 'gray', dot, className }) {

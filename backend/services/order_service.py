@@ -46,11 +46,17 @@ class OrderService:
         # 2. Lookup medicine by name (case-insensitive)
         medicine = db.query(Medicine).filter(Medicine.name.ilike(medicine_name_cleaned)).first()
 
+        # 3. Compute price fields
+        unit_price = round(medicine.unit_price, 2) if medicine else 10.0
+        total_price = round(unit_price * data.quantity, 2)
+
         order = Order(
             customer_name=customer_name_cleaned,
             phone_number=phone_cleaned,
             medicine_name=medicine_name_cleaned,
             quantity=data.quantity,
+            unit_price=unit_price,
+            total_price=total_price,
             notes=data.notes.strip() if data.notes else None,
             customer_id=customer.id,
             medicine_id=medicine.id if medicine else None
@@ -82,7 +88,13 @@ class OrderService:
         search: Optional[str] = None,
         status: Optional[str] = None
     ) -> tuple[list[Order], int]:
-        query = db.query(Order)
+        from sqlalchemy.orm import joinedload, selectinload
+        query = db.query(Order).options(
+            joinedload(Order.customer),
+            joinedload(Order.medicine),
+            selectinload(Order.timeline),
+            selectinload(Order.call_logs)
+        )
         if status and status != "all":
             from sqlalchemy import or_
             from utils.status import OrderStatus
@@ -90,7 +102,7 @@ class OrderService:
             # Map simplified business query keys to technical OrderStatus enums
             status_map = {
                 "pending": [OrderStatus.PENDING, OrderStatus.QUEUED],
-                "in_progress": [OrderStatus.CALLING, OrderStatus.IN_PROGRESS, OrderStatus.PROCESSING, OrderStatus.SIMULATING, OrderStatus.ELEVENLABS_SESSION],
+                "in_progress": [OrderStatus.CALLING, OrderStatus.IN_PROGRESS, OrderStatus.PROCESSING, OrderStatus.SIMULATING],
                 "confirmed": [OrderStatus.CONFIRMED, OrderStatus.COMPLETED],
                 "modified": [OrderStatus.MODIFIED],
                 "rejected": [OrderStatus.REJECTED],
@@ -146,11 +158,17 @@ class OrderService:
     @staticmethod
     def update(db: Session, db_order: Order, data: OrderUpdate) -> Order:
         update_data = data.model_dump(exclude_unset=True)
+        quantity_changed = 'quantity' in update_data and update_data['quantity'] != db_order.quantity
+
         for field, value in update_data.items():
           if value is not None:
             if isinstance(value, str):
               value = value.strip()
             setattr(db_order, field, value)
+
+        # Recalculate total_price if quantity was changed
+        if quantity_changed and db_order.unit_price is not None:
+            db_order.total_price = round(db_order.unit_price * db_order.quantity, 2)
 
         if data.transcript_json is not None:
           duration = data.call_duration_seconds or 0
@@ -175,6 +193,32 @@ class OrderService:
             message=msg
           )
           db.add(log_entry)
+
+          # Create call record in calls table to update dashboard metrics
+          from models.call import Call
+          from models.customer import Customer
+          from datetime import datetime, timedelta
+
+          existing_call = db.query(Call).filter(Call.order_id == db_order.id).first()
+          if not existing_call:
+              cust_id = db_order.customer_id
+              if not cust_id:
+                  cust = db.query(Customer).filter(Customer.phone_number == db_order.phone_number).first()
+                  cust_id = cust.id if cust else 1
+
+              started_at = datetime.now() - timedelta(seconds=duration)
+              ended_at = datetime.now()
+              call_record = Call(
+                  order_id=db_order.id,
+                  customer_id=cust_id,
+                  started_at=started_at,
+                  ended_at=ended_at,
+                  duration_seconds=duration,
+                  outcome=outcome,
+                  sentiment="Positive",
+                  confidence=0.95
+              )
+              db.add(call_record)
 
         db.commit()
         db.refresh(db_order)

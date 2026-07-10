@@ -80,10 +80,29 @@ def _build_schema_context(schema: Dict[str, Any]) -> str:
 
 
 def _build_sql_prompt(question: str, schema_context: str) -> str:
-    """Build the full prompt for SQL generation."""
+    """Build the full prompt for SQL generation based on the active database dialect."""
+    db_url = getattr(settings, "DATABASE_URL", "")
+    is_pg = db_url.startswith("postgresql://") or db_url.startswith("postgres://")
+    db_type = "PostgreSQL" if is_pg else "SQLite"
+
+    if is_pg:
+        date_context = """- For "today" use: DATE(created_at) = CURRENT_DATE
+- For "yesterday" use: DATE(created_at) = CURRENT_DATE - INTERVAL '1 day'
+- For "this week" use: created_at >= CURRENT_DATE - INTERVAL '7 days'
+- For "last N days" use: created_at >= CURRENT_DATE - INTERVAL 'N days'
+- For date grouping, use TO_CHAR(created_at, 'YYYY-MM-DD') AS date
+- For hour grouping, use TO_CHAR(started_at, 'HH24') AS hour"""
+    else:
+        date_context = """- For "today" use: DATE(created_at) = DATE('now')
+- For "yesterday" use: DATE(created_at) = DATE('now', '-1 day')
+- For "this week" use: DATE(created_at) >= DATE('now', '-7 days')
+- For "last N days" use: DATE(created_at) >= DATE('now', '-N days') (e.g. DATE('now', '-4 days'))
+- For date grouping, use strftime('%Y-%m-%d', created_at) AS date
+- For hour grouping, use strftime('%H', started_at) AS hour"""
+
     return f"""You are an enterprise SQL analyst for a pharmacy order management system.
 
-DATABASE SCHEMA (SQLite):
+DATABASE SCHEMA ({db_type}):
 {schema_context}
 
 IMPORTANT CONTEXT:
@@ -91,21 +110,17 @@ IMPORTANT CONTEXT:
 - calls.outcome values: same as order status values
 - calls.sentiment values: 'Positive', 'Negative', 'Neutral'
 - Revenue is calculated as: orders.quantity * medicines.unit_price (join orders with medicines on orders.medicine_id = medicines.id)
-- For "today" use: DATE(created_at) = CURRENT_DATE
-- For "yesterday" use: DATE(created_at) = CURRENT_DATE - INTERVAL '1 day'
-- For "this week" use: created_at >= CURRENT_DATE - INTERVAL '7 days'
-- For "last N days" use: created_at >= CURRENT_DATE - INTERVAL 'N days'
+- CURRENCY: All monetary values (revenue, unit_price, amounts) are in Pakistani Rupees (Rs.) — NOT dollars. Always refer to money as "Rs." in any text output.
+{date_context}
 - "callback" or "need human" means: calls.outcome = 'NEED_HUMAN' OR orders.status = 'NEED_HUMAN'
 - "cancellation" or "rejected" means: status = 'REJECTED'
 - "confirmation" or "confirmed" means: status IN ('CONFIRMED', 'COMPLETED')
 - "sales" or "revenue" means: SUM(orders.quantity * medicines.unit_price)
-- Always use LIMIT 50 unless the user asks for a specific number
+- Always use LIMIT 50 at the very end of the query (if using UNION or UNION ALL, place the LIMIT only after the last SELECT statement, never before UNION)
 - Use aliases for columns to make them human-readable (e.g., COUNT(*) AS total_calls)
-- For date grouping, use TO_CHAR(created_at, 'YYYY-MM-DD') AS date
-- For hour grouping, use TO_CHAR(started_at, 'HH24') AS hour
 
 TASK:
-Convert the following business question into a valid SQLite SELECT query.
+Convert the following business question into a valid {db_type} SELECT query.
 
 RULES:
 1. Return ONLY the raw SQL — no markdown, no backticks, no explanation
