@@ -27,6 +27,8 @@ def _run_migrations():
         ("elevenlabs_session_id", "VARCHAR(255)"),
         ("customer_id", "INTEGER"),
         ("medicine_id", "INTEGER"),
+        ("unit_price", "FLOAT"),
+        ("total_price", "FLOAT"),
     ]:
         if col not in columns:
             with engine.connect() as conn:
