@@ -41,8 +41,15 @@ def _run_migrations():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import os
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
     logger.info("AI_PROVIDER=%s | DATABASE=%s | LOG_LEVEL=%s", settings.AI_PROVIDER, settings.DATABASE_URL, settings.LOG_LEVEL)
+    
+    if os.environ.get("RESET_DB") == "true":
+        logger.info("RESET_DB is set to true. Dropping all tables...")
+        Base.metadata.drop_all(bind=engine)
+        logger.info("All tables dropped successfully.")
+        
     Base.metadata.create_all(bind=engine)
     _run_migrations()
     logger.info("Database tables created / verified")
