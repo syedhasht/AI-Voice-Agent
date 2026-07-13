@@ -5,6 +5,7 @@ import {
   Settings, X, Users, Phone, BarChart3, Bot, BookOpen
 } from 'lucide-react';
 import { classNames } from '../../utils/helpers';
+import { useAuth } from '../../context/AuthContext';
 
 const iconMap = {
   Headphones, LayoutDashboard, ClipboardList, PlusCircle,
@@ -19,12 +20,23 @@ const items = [
   { label: 'Customers',    path: '/customers',    icon: 'Users' },
   { label: 'Calls',        path: '/calls',        icon: 'Phone' },
   { label: 'Analytics',    path: '/analytics',    icon: 'BarChart3' },
-  { label: 'AI Assistant', path: '/ai-assistant', icon: 'Bot' },
-  { label: 'RAG Assistant',path: '/rag-assistant',icon: 'BookOpen' },
+//  { label: 'AI Assistant', path: '/ai-assistant', icon: 'Bot' },
+//  { label: 'RAG Assistant',path: '/rag-assistant',icon: 'BookOpen' },
   { label: 'Settings',     path: '/settings',     icon: 'Settings' },
 ];
 
 export default function Sidebar({ open, onClose }) {
+  const { user } = useAuth();
+  
+  const getInitials = (name) => {
+    if (!name) return '??';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  };
+
   return (
     <>
       {open && (
@@ -67,7 +79,7 @@ export default function Sidebar({ open, onClose }) {
                     <path d="M2 12l10 5 10-5" />
                   </svg>
                 </div>
-                <span className="font-bold text-sm text-white tracking-wide">AI Voice Agent</span>
+                <span className="font-bold text-sm text-white tracking-wide">MediVoice AI</span>
               </NavLink>
               <button
                 onClick={onClose}
@@ -126,11 +138,11 @@ export default function Sidebar({ open, onClose }) {
                     boxShadow: '0 2px 8px rgba(8,145,178,0.4)',
                   }}
                 >
-                  AM
+                  {getInitials(user.name)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">Alex Morgan</p>
-                  <p className="text-xs text-[#7aa5c0] truncate">Sales Representative</p>
+                  <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+                  <p className="text-xs text-[#7aa5c0] truncate">{user.role}</p>
                 </div>
               </div>
             </div>

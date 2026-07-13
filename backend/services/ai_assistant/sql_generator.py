@@ -106,15 +106,16 @@ DATABASE SCHEMA ({db_type}):
 {schema_context}
 
 IMPORTANT CONTEXT:
-- orders.status values: 'PENDING', 'QUEUED', 'CALLING', 'IN_PROGRESS', 'PROCESSING', 'CONFIRMED', 'MODIFIED', 'REJECTED', 'NEED_HUMAN', 'SIMULATING', 'COMPLETED'
-- calls.outcome values: same as order status values
+- SQLite is case-sensitive.
+- orders.status values are stored in UPPERCASE: 'PENDING', 'QUEUED', 'CALLING', 'IN_PROGRESS', 'PROCESSING', 'CONFIRMED', 'MODIFIED', 'REJECTED', 'NEED_HUMAN', 'SIMULATING', 'COMPLETED'
+- calls.outcome values are stored in LOWERCASE: 'pending', 'queued', 'calling', 'in_progress', 'processing', 'confirmed', 'modified', 'rejected', 'need_human', 'simulating', 'completed'
 - calls.sentiment values: 'Positive', 'Negative', 'Neutral'
 - Revenue is calculated as: orders.quantity * medicines.unit_price (join orders with medicines on orders.medicine_id = medicines.id)
 - CURRENCY: All monetary values (revenue, unit_price, amounts) are in Pakistani Rupees (Rs.) — NOT dollars. Always refer to money as "Rs." in any text output.
 {date_context}
-- "callback" or "need human" means: calls.outcome = 'NEED_HUMAN' OR orders.status = 'NEED_HUMAN'
-- "cancellation" or "rejected" means: status = 'REJECTED'
-- "confirmation" or "confirmed" means: status IN ('CONFIRMED', 'COMPLETED')
+- "callback" or "need human" means: calls.outcome = 'need_human' OR orders.status = 'NEED_HUMAN'
+- "cancellation" or "rejected" means: orders.status = 'REJECTED' OR calls.outcome = 'rejected'
+- "confirmation" or "confirmed" means: orders.status IN ('CONFIRMED', 'COMPLETED') or calls.outcome IN ('confirmed', 'completed')
 - "sales" or "revenue" means: SUM(orders.quantity * medicines.unit_price)
 - Always use LIMIT 50 at the very end of the query (if using UNION or UNION ALL, place the LIMIT only after the last SELECT statement, never before UNION)
 - Use aliases for columns to make them human-readable (e.g., COUNT(*) AS total_calls)

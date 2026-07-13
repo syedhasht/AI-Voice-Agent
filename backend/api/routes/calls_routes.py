@@ -21,7 +21,7 @@ def list_calls(
     query_obj = db.query(Call).options(joinedload(Call.customer)).join(Customer, Call.customer_id == Customer.id)
 
     if outcome and outcome != "all":
-        query_obj = query_obj.filter(Call.outcome == outcome)
+        query_obj = query_obj.filter(Call.outcome.ilike(outcome))
 
     if sentiment and sentiment != "all":
         query_obj = query_obj.filter(Call.sentiment == sentiment)

@@ -31,7 +31,7 @@ def get_summary(db: Session = Depends(get_db)):
     rejected_count = status_counts.get("rejected", 0)
     
     # Count of calls needing human agent (Escalated Calls)
-    need_human_count = db.query(Call).filter(Call.outcome == "need_human").count()
+    need_human_count = db.query(Call).filter(Call.outcome.ilike("need_human")).count()
 
     total_calls = db.query(Call).count()
     if total_calls > 0:

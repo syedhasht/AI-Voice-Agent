@@ -4,14 +4,14 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState({
-    name: 'Alex Morgan',
-    email: 'alex@pharmacy.com',
+    name: 'Syed Hashim',
+    email: 'hashim@pharmacy.com',
     avatar: null,
     role: 'Sales Representative',
   });
 
-  const login = () => {};
-  const logout = () => {};
+  const login = () => { };
+  const logout = () => { };
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

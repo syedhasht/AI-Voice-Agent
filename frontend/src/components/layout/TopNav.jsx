@@ -20,7 +20,7 @@ export default function TopNav({ onMenuClick }) {
           <Menu size={20} />
         </button>
         <div className="hidden lg:flex items-center gap-2 text-sm">
-          <span className="font-semibold text-[#0c1a22]">AI Voice Agent</span>
+          <span className="font-semibold text-[#0c1a22]">MediVoice AI</span>
           <span className="text-[#90aab8]">/</span>
           <span className="text-[#3a5566]">Pharmacy Dashboard</span>
         </div>

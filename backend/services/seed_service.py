@@ -8,24 +8,31 @@ from utils.status import OrderStatus
 
 # Pre-defined mock data lists to ensure everything looks clearly synthetic
 FAKE_FIRST_NAMES = [
-    "John", "Alice", "Michael", "Emily", "Muhammad", "Sara", "David", "Jane", "Robert", 
-    "Zainab", "Ali", "Aisha", "Hamza", "Fatima", "Arthur", "Ford", "Tricia", "Zaphod", 
-    "Slartibartfast", "Trillian"
+    "Muhammad", "Zainab", "Ali", "Aisha", "Hamza", "Fatima", "Bilal", "Sana", 
+    "Usman", "Amina", "Imran", "Mariam", "Tariq", "Hafsa", "Zeeshan", "Saba",
+    "Kamran", "Sadia", "Asif", "Nida", "Faisal", "Kiran", "Adnan", "Sidra"
 ]
 FAKE_LAST_NAMES = [
-    "Smith", "Brown", "Johnson", "Davis", "Ali", "Khan", "Dent", "Prefect", "McMillan", 
-    "Beeblebrox", "Ahmed", "Hassan", "Malik", "Iqbal", "Butt", "Javed", "Siddiqui"
+    "Khan", "Ahmed", "Hassan", "Malik", "Iqbal", "Javed", "Siddiqui", 
+    "Qureshi", "Abbasi", "Shah", "Rehman", "Butt", "Bukhari", "Dar", "Sheikh"
 ]
 FAKE_CITIES = [
-    "Springfield", "Fakeville", "Test City", "Sample Town", "Demo City"
+    "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Peshawar", "Multan", "Faisalabad", "Quetta"
 ]
 FAKE_PROVINCES = {
-    "Springfield": "Illinois Province",
-    "Fakeville": "Mockistan",
-    "Test City": "Sandbox Region",
-    "Sample Town": "Prototype District",
-    "Demo City": "Alpha Province"
+    "Karachi": "Sindh",
+    "Lahore": "Punjab",
+    "Faisalabad": "Punjab",
+    "Rawalpindi": "Punjab",
+    "Multan": "Punjab",
+    "Islamabad": "Islamabad Capital Territory",
+    "Peshawar": "Khyber Pakhtunkhwa",
+    "Quetta": "Balochistan"
 }
+FAKE_AREAS = [
+    "DHA Phase 6", "Gulshan-e-Iqbal", "Clifton", "Johar Town", "F-10 Markaz", 
+    "G-11", "Bahria Town", "Gulberg III", "Samanabad", "Askari 11", "Cantt"
+]
 FAKE_MEDICINE_PREFIXES = [
     "PainRelief", "MediTest", "SampleCure", "DemoCaps", "Mockicillin", 
     "FeverFree", "CoughDrop", "SootheGel", "VitaBoost", "SleepWell"
@@ -74,8 +81,8 @@ class SeedService:
                     used_phones.add(phone)
                     break
             
-            email = f"{first.lower()}{random.randint(100, 999)}.demo@test.com"
-            address = f"House {random.randint(1, 500)}, Street {random.randint(1, 50)}, Fake Block"
+            email = f"{first.lower()}.{last.lower()}{random.randint(10, 99)}@gmail.com"
+            address = f"House {random.randint(1, 150)}, Street {random.randint(1, 20)}, {random.choice(FAKE_AREAS)}"
             city = random.choice(FAKE_CITIES)
             province = FAKE_PROVINCES.get(city, "Fake Province")
             gender = random.choice(["Male", "Female", "Other"])

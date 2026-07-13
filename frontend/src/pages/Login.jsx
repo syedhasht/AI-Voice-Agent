@@ -34,7 +34,7 @@ export default function Login() {
                 <path d="M2 12l10 5 10-5" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-text-primary">AI Voice Agent</h1>
+            <h1 className="text-2xl font-bold text-text-primary">MediVoice AI</h1>
             <p className="text-sm text-text-secondary mt-2">Sign in to the pharmacy dashboard</p>
           </div>
 
@@ -42,8 +42,8 @@ export default function Login() {
             <Input
               label="Email"
               type="email"
-              placeholder="alex@pharmacy.com"
-              defaultValue="alex@pharmacy.com"
+              placeholder="zainab@pharmacy.com"
+              defaultValue="zainab@pharmacy.com"
             />
             <Input
               label="Password"
